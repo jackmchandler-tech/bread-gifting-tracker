@@ -1,55 +1,29 @@
 # Bread Gifting Tracker
 
-A deployable React + Vite version of your bread gifting tracker.
+A mobile-first React/Vite app for tracking bread recipients, reusable lists, gift history, and feedback.
 
-## Run locally
-
-1. Install Node.js 18+
-2. Open a terminal in this folder
-3. Run:
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-4. Open the local URL shown by Vite
-
-## Build for deployment
+## Build
 
 ```bash
-npm install
 npm run build
 ```
 
-The production files will be created in `dist/`.
+## PWA support
 
-## Deploy on Vercel
+This project includes:
+- `public/manifest.webmanifest`
+- `public/sw.js`
+- home screen icons in `public/icons/`
 
-1. Create a free Vercel account
-2. Create a new project
-3. Upload this folder or connect a Git repository
-4. Use the defaults:
-   - Framework: Vite
-   - Build command: `npm run build`
-   - Output directory: `dist`
+After deploying, open the site in Safari on iPhone and use **Share → Add to Home Screen**.
 
-## Install on iPhone/iPad
+## Updating on GitHub
 
-After deployment:
-
-1. Open the site in Safari
-2. Tap Share
-3. Tap Add to Home Screen
-
-## Notes
-
-- Data is stored in the browser's local storage
-- Use the Backup JSON export regularly
-- CSV import supports columns such as:
-  - `name`
-  - `associatedName`
-  - `howMet`
-  - `note`
-  - `phone`
-  - `listName`
+You can update files directly in GitHub with the pencil icon, or use the `.` key to open the browser editor. Commit the changes and Vercel will redeploy automatically.
