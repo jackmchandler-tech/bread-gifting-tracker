@@ -24,6 +24,7 @@ const Trash2 = ({ className = "w-5 h-5" }) => <Icon className={className}>🗑</
 const X = ({ className = "w-5 h-5" }) => <Icon className={className}>✕</Icon>;
 
 const STORAGE_KEY = "bread-gifting-tracker-v1";
+const APP_VERSION = "v1.1";
 
 function downloadTextFile(filename, content, mimeType = "text/plain;charset=utf-8") {
   const blob = new Blob([content], { type: mimeType });
@@ -643,7 +644,10 @@ export default function BreadGiftingTrackerWebApp() {
       <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 pb-28 space-y-4">
         <div className="rounded-[28px] bg-white border shadow-sm p-4 flex items-center justify-between gap-4">
           <div>
-            <div className="text-2xl font-bold">Bread Gifting Tracker</div>
+            <div className="flex items-baseline gap-2">
+                <div className="text-2xl font-bold">Bread Gifting Tracker</div>
+                <span className="text-xs text-gray-400">{APP_VERSION}</span>
+            </div>  
             <div className="text-sm text-gray-500">Mobile-first web app prototype with local saving in your browser. After recording a gift, use Edit Date in the banner if it was given in the past.</div>
           </div>
           <Badge tone="orange">{currentBread?.name || "No bread selected"}</Badge>
