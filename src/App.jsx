@@ -24,6 +24,7 @@ const Trash2 = ({ className = "w-5 h-5" }) => <Icon className={className}>🗑</
 const X = ({ className = "w-5 h-5" }) => <Icon className={className}>✕</Icon>;
 
 const STORAGE_KEY = "bread-gifting-tracker-v1";
+const APP_VERSION = "v1.1";
 
 function downloadTextFile(filename, content, mimeType = "text/plain;charset=utf-8") {
   const blob = new Blob([content], { type: mimeType });
