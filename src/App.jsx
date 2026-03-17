@@ -24,7 +24,7 @@ const Trash2 = ({ className = "w-5 h-5" }) => <Icon className={className}>🗑</
 const X = ({ className = "w-5 h-5" }) => <Icon className={className}>✕</Icon>;
 
 const STORAGE_KEY = "bread-gifting-tracker-v1";
-const APP_VERSION = "v1.1a";
+const APP_VERSION = "v1.1";
 
 function downloadTextFile(filename, content, mimeType = "text/plain;charset=utf-8") {
   const blob = new Blob([content], { type: mimeType });
@@ -216,10 +216,10 @@ function PersonRow({ row, mode, onGift, onOpen, onToggleGiftDateEdit }) {
           <div className="flex items-start justify-between gap-2">
             <div className="font-medium leading-tight flex items-center gap-2 flex-wrap">
               <span>{row.person.name}</span>
-              {mode === "all" && <Badge tone="gray">{(row.totalLoaves || 0) === 1 ? "1 loaf" : `${row.totalLoaves || 0} loaves`}</Badge>}
+              {mode === "all" && <Badge tone="gray">{(row.totalLoaves || 0) === 1 ? "1 gift" : `${row.totalLoaves || 0} gifts`}</Badge>}
             </div>
             <div className="flex gap-1 flex-wrap justify-end">
-              {row.isNewToList && mode === "list" && <Badge tone="blue">NEW TO LIST</Badge>}
+              {row.isNewToList && mode === "list" && <Badge tone="blue">NEW TO GROUP</Badge>}
               {row.neverGifted && mode === "all" && <Badge tone="yellow">NEVER GIFTED</Badge>}
             </div>
           </div>
@@ -235,7 +235,7 @@ function PersonRow({ row, mode, onGift, onOpen, onToggleGiftDateEdit }) {
             )
           ) : (
             <button onClick={onToggleGiftDateEdit} className="text-xs text-gray-500 hover:text-gray-800 text-left">
-              {row.lastAnywhere ? `Last anywhere: ${formatDate(row.lastAnywhere.date)} · ${row.lastAnywhere.breadTypeName}` : "Never received bread"}
+              {row.lastAnywhere ? `Last anywhere: ${formatDate(row.lastAnywhere.date)} · ${row.lastAnywhere.breadTypeName}` : "Never received gift"}
             </button>
           )}
         </div>
@@ -391,7 +391,7 @@ export default function BreadGiftingTrackerWebApp() {
       id: uid(),
       personId,
       listId,
-      breadTypeName: currentBread?.name || "Bread",
+      breadTypeName: currentBread?.name || "Gift",
       date: overrideDate || todayInputValue(),
       feedback: "",
       rating: null,
@@ -464,6 +464,13 @@ export default function BreadGiftingTrackerWebApp() {
     }));
   }
 
+  function archivePerson(personId) {
+    setData((d) => ({
+      ...d,
+      people: d.people.map((p) => (p.id === personId ? { ...p, archived: true } : p)),
+    }));
+  }
+
   function updateGiftDate(giftId, date) {
     setData((d) => ({ ...d, gifts: d.gifts.map((g) => (g.id === giftId ? { ...g, date } : g)) }));
     setUndoGift((g) => (g && g.id === giftId ? { ...g, date } : g));
@@ -477,7 +484,7 @@ export default function BreadGiftingTrackerWebApp() {
 
   function exportBackup() {
     downloadTextFile(
-      `bread-gifting-backup-${todayInputValue()}.json`,
+      `giving-tracker-backup-${todayInputValue()}.json`,
       JSON.stringify(data, null, 2),
       "application/json;charset=utf-8"
     );
@@ -491,14 +498,14 @@ export default function BreadGiftingTrackerWebApp() {
         date: gift.date,
         personName: personById(gift.personId)?.name || "",
         associatedName: personById(gift.personId)?.associatedName || "",
-        breadType: gift.breadTypeName,
-        listName: data.lists.find((l) => l.id === gift.listId)?.name || "All People",
+        giftType: gift.breadTypeName,
+        groupName: data.lists.find((l) => l.id === gift.listId)?.name || "All People",
         rating: gift.rating || "",
         feedback: gift.feedback || "",
       }));
     downloadTextFile(
-      `bread-gifting-history-${todayInputValue()}.csv`,
-      buildCsv(rows, ["date", "personName", "associatedName", "breadType", "listName", "rating", "feedback"]),
+      `giving-history-${todayInputValue()}.csv`,
+      buildCsv(rows, ["date", "personName", "associatedName", "giftType", "groupName", "rating", "feedback"]),
       "text/csv;charset=utf-8"
     );
   }
@@ -546,7 +553,7 @@ export default function BreadGiftingTrackerWebApp() {
             const howMet = (row.howMet || row.HowMet || row.met || "").trim();
             const note = (row.note || row.Note || row.position || row.Position || "").trim();
             const phone = (row.phone || row.Phone || row.phoneNumber || row.PhoneNumber || "").trim();
-            const listName = (row.listName || row.ListName || row.list || row.List || "").trim();
+            const listName = (row.groupName || row.GroupName || row.listName || row.ListName || row.group || row.Group || row.list || row.List || "").trim();
 
             const duplicate = nextPeople.find(
               (p) => p.name.toLowerCase() === name.toLowerCase() && (p.associatedName || "").toLowerCase() === associatedName.toLowerCase()
@@ -644,13 +651,10 @@ export default function BreadGiftingTrackerWebApp() {
       <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 pb-28 space-y-4">
         <div className="rounded-[28px] bg-white border shadow-sm p-4 flex items-center justify-between gap-4">
           <div>
-            <div className="flex items-baseline gap-2">
-                <div className="text-2xl font-bold">Bread Gifting Tracker</div>
-                <span className="text-xs text-gray-400">{APP_VERSION}</span>
-            </div>  
+            <div className="flex items-baseline gap-2"><div className="text-2xl font-bold">Giving Tracker</div><span className="text-xs text-gray-400">{APP_VERSION}</span></div>
             <div className="text-sm text-gray-500">Mobile-first web app prototype with local saving in your browser. After recording a gift, use Edit Date in the banner if it was given in the past.</div>
           </div>
-          <Badge tone="orange">{currentBread?.name || "No bread selected"}</Badge>
+          <Badge tone="orange">{currentBread?.name || "No gift selected"}</Badge>
         </div>
 
         {tab === "home" && (
@@ -671,8 +675,8 @@ export default function BreadGiftingTrackerWebApp() {
             <SectionCard title="Quick Access">
               <div className="grid sm:grid-cols-2 gap-3">
                 <AppButton className="justify-start text-left" onClick={() => setTab("people")}>All People</AppButton>
-                <AppButton className="justify-start text-left" onClick={() => setTab("lists")} variant="secondary">Lists</AppButton>
-                <AppButton className="justify-start text-left" onClick={() => setTab("bread")} variant="secondary">Bread Types</AppButton>
+                <AppButton className="justify-start text-left" onClick={() => setTab("lists")} variant="secondary">Groups</AppButton>
+                <AppButton className="justify-start text-left" onClick={() => setTab("bread")} variant="secondary">Gift Types</AppButton>
                 {!!quickAccessList && (
                   <AppButton className="justify-start text-left" onClick={() => { setActiveListId(quickAccessList.id); setLastOpenedListId(quickAccessList.id); setSearch(""); setTab("listDetail"); }} variant="secondary">
                     Continue {quickAccessList.name}
@@ -689,7 +693,7 @@ export default function BreadGiftingTrackerWebApp() {
                 <AppButton onClick={() => peopleCsvInputRef.current?.click()} variant="secondary">Import People CSV</AppButton>
               </div>
               <div className="text-sm text-gray-500">
-                CSV import accepts headers such as: name, associatedName, howMet, note, phone, listName.
+                CSV import accepts headers such as: name, associatedName, howMet, note, phone, groupName.
               </div>
               <input
                 ref={backupInputRef}
@@ -754,7 +758,7 @@ export default function BreadGiftingTrackerWebApp() {
 
         {tab === "listDetail" && activeList && (
           <div className="space-y-4">
-            <SectionCard title={activeList.name} action={<div className="flex items-center gap-2"><AppButton variant="secondary" onClick={() => setTab("lists")}>Back to Lists</AppButton><Badge tone="orange">{currentBread?.name || "Bread"}</Badge></div>}>
+            <SectionCard title={activeList.name} action={<div className="flex items-center gap-2"><AppButton variant="secondary" onClick={() => setTab("lists")}>Back to Groups</AppButton><Badge tone="orange">{currentBread?.name || "Gift"}</Badge></div>}>
               <div className="rounded-2xl border bg-stone-50 px-3 py-2 flex items-center gap-2">
                 <Search className="w-4 h-4 text-gray-400" />
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or associated person" className="bg-transparent outline-none w-full" />
@@ -762,7 +766,7 @@ export default function BreadGiftingTrackerWebApp() {
               <div className="flex flex-wrap gap-2">
                 <AppButton onClick={() => setAddPersonContext({ listId: activeList.id })}><UserPlus className="w-4 h-4 inline mr-1" />Add Person</AppButton>
                 <AppButton onClick={() => setShowAddExisting(true)} variant="secondary">Add Existing</AppButton>
-                <AppButton onClick={() => resetListCycle(activeList.id)} variant="secondary"><RotateCcw className="w-4 h-4 inline mr-1" />Reset List Cycle</AppButton>
+                <AppButton onClick={() => resetListCycle(activeList.id)} variant="secondary"><RotateCcw className="w-4 h-4 inline mr-1" />Reset Group Cycle</AppButton>
               </div>
             </SectionCard>
 
@@ -778,7 +782,7 @@ export default function BreadGiftingTrackerWebApp() {
                     onToggleGiftDateEdit={() => {}}
                   />
                 ))}
-                {!activeListRows.filter((r) => !r.checked).length && <div className="text-sm text-gray-500">Everyone on this list has been gifted in the current cycle.</div>}
+                {!activeListRows.filter((r) => !r.checked).length && <div className="text-sm text-gray-500">Everyone in this group has been gifted in the current cycle.</div>}
               </div>
             </SectionCard>
 
@@ -810,8 +814,8 @@ export default function BreadGiftingTrackerWebApp() {
           {[
             ["home", Home, "Home"],
             ["people", Users, "People"],
-            ["lists", ListChecks, "Lists"],
-            ["bread", Bread, "Bread"],
+            ["lists", ListChecks, "Groups"],
+            ["bread", Bread, "Gift Types"],
           ].map(([key, IconCmp, label]) => (
             <button key={key} onClick={() => { setTab(key); setSearch(""); }} className={`rounded-2xl py-2 flex flex-col items-center gap-1 text-xs ${tab === key ? "bg-stone-100 font-semibold" : "text-gray-500"}`}>
               <IconCmp className="w-5 h-5" />
@@ -909,6 +913,10 @@ export default function BreadGiftingTrackerWebApp() {
             updatePerson(editPersonId, updates);
             setEditPersonId(null);
           }}
+          onDelete={() => {
+            archivePerson(editPersonId);
+            setEditPersonId(null);
+          }}
         />
       )}
 
@@ -930,7 +938,7 @@ function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, se
   const [newListName, setNewListName] = useState("");
   return (
     <div className="space-y-4">
-      <SectionCard title="Lists">
+      <SectionCard title="Groups">
         <div className="space-y-3">
           {data.lists.map((list) => {
             const remaining = data.memberships.filter((m) => m.listId === list.id && !m.giftedThisCycle).length;
@@ -948,9 +956,9 @@ function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, se
         </div>
       </SectionCard>
 
-      <SectionCard title="Create List">
+      <SectionCard title="Create Group">
         <div className="flex gap-2">
-          <input value={newListName} onChange={(e) => setNewListName(e.target.value)} placeholder="List name" className="flex-1 rounded-2xl border px-3 py-2.5 outline-none" />
+          <input value={newListName} onChange={(e) => setNewListName(e.target.value)} placeholder="Group name" className="flex-1 rounded-2xl border px-3 py-2.5 outline-none" />
           <AppButton onClick={() => { addList(newListName); setNewListName(""); }}>Add</AppButton>
         </div>
       </SectionCard>
@@ -960,7 +968,7 @@ function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, se
 
 function BreadManagerScreen({ breadTypes, setCurrentBread, requestDeleteBreadType, openAdd }) {
   return (
-    <SectionCard title="Bread Types" action={<AppButton onClick={openAdd}><Plus className="w-4 h-4 inline mr-1" />Add</AppButton>}>
+    <SectionCard title="Gift Types" action={<AppButton onClick={openAdd}><Plus className="w-4 h-4 inline mr-1" />Add</AppButton>}>
       <div className="space-y-3">
         {breadTypes.map((bread) => (
           <div key={bread.id} className="rounded-2xl border p-3 flex items-center justify-between gap-3">
@@ -1153,9 +1161,9 @@ function AddBreadModal({ onClose, onSave }) {
   }, []);
 
   return (
-    <Modal title="Add Bread Type" onClose={onClose}>
+    <Modal title="Add Gift Type" onClose={onClose}>
       <div className="space-y-3">
-        <input ref={inputRef} value={name} onChange={(e) => setName(e.target.value)} placeholder="Bread type" className="w-full rounded-2xl border px-3 py-3 outline-none" />
+        <input ref={inputRef} value={name} onChange={(e) => setName(e.target.value)} placeholder="Gift type" className="w-full rounded-2xl border px-3 py-3 outline-none" />
         <div className="flex justify-end gap-2">
           <AppButton onClick={onClose} variant="secondary">Cancel</AppButton>
           <AppButton onClick={() => onSave(name)} disabled={!name.trim()}>Add</AppButton>
@@ -1167,10 +1175,10 @@ function AddBreadModal({ onClose, onSave }) {
 
 function ConfirmDeleteBreadModal({ bread, onClose, onConfirm }) {
   return (
-    <Modal title="Delete Bread Type" onClose={onClose}>
+    <Modal title="Delete Gift Type" onClose={onClose}>
       <div className="space-y-4">
         <div className="text-sm text-gray-700">
-          Delete <span className="font-semibold">{bread?.name}</span> from the bread list? Previous gift records will keep this bread name in history.
+          Delete <span className="font-semibold">{bread?.name}</span> from the gift type list? Previous gift records will keep this gift type name in history.
         </div>
         <div className="flex justify-end gap-2">
           <AppButton onClick={onClose} variant="secondary">Cancel</AppButton>
@@ -1202,7 +1210,7 @@ function EditGiftDateModal({ gift, onClose, onSave }) {
   );
 }
 
-function EditPersonModal({ person, onClose, onSave }) {
+function EditPersonModal({ person, onClose, onSave, onDelete }) {
   const [form, setForm] = useState({
     name: person?.name || "",
     associatedName: person?.associatedName || "",
