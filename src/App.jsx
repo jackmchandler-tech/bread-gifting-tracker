@@ -956,6 +956,16 @@ export default function BreadGiftingTrackerWebApp() {
           }}
         />
       )}
+      {renameGroupId && (
+        <RenameGroupModal
+          group={data.lists.find((list) => list.id === renameGroupId)}
+          onClose={() => setRenameGroupId(null)}
+          onSave={(name) => {
+            renameList(renameGroupId, name);
+            setRenameGroupId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1324,16 +1334,6 @@ function EditGiftFeedbackModal({ gift, onClose, onSave }) {
         </div>
       </div>
     </Modal>
-    {renameGroupId && (
-      <RenameGroupModal
-        group={data.lists.find((list) => list.id === renameGroupId)}
-        onClose={() => setRenameGroupId(null)}
-        onSave={(name) => {
-          renameList(renameGroupId, name);
-          setRenameGroupId(null);
-        }}
-      />
-    )}
   );
 }
 function RenameGroupModal({ group, onClose, onSave }) {
