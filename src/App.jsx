@@ -287,6 +287,7 @@ export default function BreadGiftingTrackerWebApp() {
   const [lastOpenedListId, setLastOpenedListId] = useState(null);
   const [editPersonId, setEditPersonId] = useState(null);
   const [editFeedbackGiftId, setEditFeedbackGiftId] = useState(null);
+  const [renameGroupId, setRenameGroupId] = useState(null);
   const backupInputRef = useRef(null);
   const peopleCsvInputRef = useRef(null);
 
@@ -350,6 +351,14 @@ export default function BreadGiftingTrackerWebApp() {
     const trimmed = name.trim();
     if (!trimmed) return;
     setData((d) => ({ ...d, lists: [...d.lists, { id: uid(), name: trimmed }] }));
+  }
+  function renameList(listId, name) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setData((d) => ({
+      ...d,
+      lists: d.lists.map((list) => (list.id === listId ? { ...list, name: trimmed } : list)),
+    }));
   }
 
   function addPerson(form, listId = null) {
@@ -753,12 +762,29 @@ export default function BreadGiftingTrackerWebApp() {
         )}
 
         {tab === "lists" && (
-          <ListsScreen data={data} setActiveListId={setActiveListId} setLastOpenedListId={setLastOpenedListId} setSearch={setSearch} setTab={setTab} addList={addList} />
+          <ListsScreen
+            data={data}
+            setActiveListId={setActiveListId}
+            setLastOpenedListId={setLastOpenedListId}
+            setSearch={setSearch}
+            setTab={setTab}
+            addList={addList}
+            onRename={(listId) => setRenameGroupId(listId)}
+          />
         )}
 
         {tab === "listDetail" && activeList && (
           <div className="space-y-4">
-            <SectionCard title={activeList.name} action={<div className="flex items-center gap-2"><AppButton variant="secondary" onClick={() => setTab("lists")}>Back to Groups</AppButton><Badge tone="orange">{currentBread?.name || "Gift"}</Badge></div>}>
+              <SectionCard
+                title={activeList.name}
+                action={
+                  <div className="flex items-center gap-2">
+                    <AppButton variant="secondary" onClick={() => setTab("lists")}>Back to Groups</AppButton>
+                    <AppButton variant="secondary" onClick={() => setRenameGroupId(activeList.id)}>Rename Group</AppButton>
+                    <Badge tone="orange">{currentBread?.name || "Gift"}</Badge>
+                  </div>
+                }
+              >
               <div className="rounded-2xl border bg-stone-50 px-3 py-2 flex items-center gap-2">
                 <Search className="w-4 h-4 text-gray-400" />
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or associated person" className="bg-transparent outline-none w-full" />
@@ -930,11 +956,21 @@ export default function BreadGiftingTrackerWebApp() {
           }}
         />
       )}
+      {renameGroupId && (
+        <RenameGroupModal
+          group={data.lists.find((list) => list.id === renameGroupId)}
+          onClose={() => setRenameGroupId(null)}
+          onSave={(name) => {
+            renameList(renameGroupId, name);
+            setRenameGroupId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, setTab, addList }) {
+function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, setTab, addList, onRename }) {
   const [newListName, setNewListName] = useState("");
   return (
     <div className="space-y-4">
@@ -943,14 +979,18 @@ function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, se
           {data.lists.map((list) => {
             const remaining = data.memberships.filter((m) => m.listId === list.id && !m.giftedThisCycle).length;
             return (
+              <div key={list.id} className="rounded-2xl border p-4 bg-white">
               <button
-                key={list.id}
                 onClick={() => { setActiveListId(list.id); setLastOpenedListId(list.id); setSearch(""); setTab("listDetail"); }}
-                className="w-full text-left rounded-2xl border p-4 bg-white hover:bg-stone-50"
+                className="w-full text-left hover:bg-stone-50"
               >
                 <div className="font-medium">{list.name}</div>
                 <div className="text-sm text-gray-500">{remaining} left this cycle</div>
               </button>
+              <div className="mt-3">
+                <AppButton variant="secondary" onClick={() => onRename(list.id)}>Rename Group</AppButton>
+              </div>
+            </div>
             );
           })}
         </div>
@@ -1291,6 +1331,32 @@ function EditGiftFeedbackModal({ gift, onClose, onSave }) {
         <div className="flex justify-end gap-2">
           <AppButton onClick={onClose} variant="secondary">Cancel</AppButton>
           <AppButton onClick={() => onSave(feedback, rating)}>Save Changes</AppButton>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+function RenameGroupModal({ group, onClose, onSave }) {
+  const [name, setName] = useState(group?.name || "");
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  return (
+    <Modal title="Rename Group" onClose={onClose}>
+      <div className="space-y-3">
+        <input
+          ref={inputRef}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Group name"
+          className="w-full rounded-2xl border px-3 py-3 outline-none"
+        />
+        <div className="flex justify-end gap-2">
+          <AppButton onClick={onClose} variant="secondary">Cancel</AppButton>
+          <AppButton onClick={() => onSave(name)} disabled={!name.trim()}>Save</AppButton>
         </div>
       </div>
     </Modal>
