@@ -22,7 +22,7 @@ This project includes:
 - `public/sw.js`
 - home screen icons in `public/icons/`
 
-After deploying, open the site in Safari on iPhone and use **Share → Add to Home Screen**.
+After deploying, open the site in Safari on iPhone and use **Share → Add to Home Screen**. 
 
 ## Updating on GitHub
 
