@@ -25,7 +25,7 @@ const X = ({ className = "w-5 h-5" }) => <Icon className={className}>✕</Icon>;
 const SettingsIcon = ({ className = "w-5 h-5" }) => <Icon className={className}>⚙</Icon>;
 
 const STORAGE_KEY = "bread-gifting-tracker-v1";
-const APP_VERSION = "v1.2";
+const APP_VERSION = "v1.2.1";
 const DEFAULT_APP_SETTINGS = {
   title: "Bread Tracker",
   itemSingular: "loaf",
