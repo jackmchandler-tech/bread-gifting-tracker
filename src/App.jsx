@@ -27,9 +27,9 @@ const SettingsIcon = ({ className = "w-5 h-5" }) => <Icon className={className}>
 const STORAGE_KEY = "bread-gifting-tracker-v1";
 const APP_VERSION = "v1.2";
 const DEFAULT_APP_SETTINGS = {
-  title: "Giving Tracker",
-  itemSingular: "gift",
-  itemPlural: "gifts",
+  title: "Bread Tracker",
+  itemSingular: "loaf",
+  itemPlural: "loaves",
   enableRatings: true,
   enableFeedback: true,
 };
@@ -350,18 +350,18 @@ function BreadManagerScreen({ breadTypes, setCurrentBread, requestDeleteBreadTyp
 
 function SetupScreen({ settings, onSave }) {
   const [form, setForm] = useState({
-    title: settings.title || "Giving Tracker",
-    itemSingular: settings.itemSingular || "gift",
-    itemPlural: settings.itemPlural || "gifts",
+    title: settings.title || "Bread Tracker",
+    itemSingular: settings.itemSingular || "loaf",
+    itemPlural: settings.itemPlural || "loaves",
     enableRatings: settings.enableRatings ?? true,
     enableFeedback: settings.enableFeedback ?? true,
   });
 
   useEffect(() => {
     setForm({
-      title: settings.title || "Giving Tracker",
-      itemSingular: settings.itemSingular || "gift",
-      itemPlural: settings.itemPlural || "gifts",
+      title: settings.title || "Bread Tracker",
+      itemSingular: settings.itemSingular || "loaf",
+      itemPlural: settings.itemPlural || "loaves",
       enableRatings: settings.enableRatings ?? true,
       enableFeedback: settings.enableFeedback ?? true,
     });
