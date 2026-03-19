@@ -1,4 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { STORAGE_KEY, APP_VERSION, DEFAULT_APP_SETTINGS } from "./constants";
+import { todayInputValue, formatDate } from "./utils/dates";
+import { parseCsv, buildCsv } from "./utils/csv";
+import { normalizeData, defaultData, loadData } from "./utils/storage";
+import { downloadTextFile } from "./utils/file";
 
 function Icon({ children, className = "w-5 h-5", title }) {
   return (
@@ -24,162 +29,10 @@ const Trash2 = ({ className = "w-5 h-5" }) => <Icon className={className}>🗑</
 const X = ({ className = "w-5 h-5" }) => <Icon className={className}>✕</Icon>;
 const SettingsIcon = ({ className = "w-5 h-5" }) => <Icon className={className}>⚙</Icon>;
 
-const STORAGE_KEY = "bread-gifting-tracker-v1";
-const APP_VERSION = "v1.2.2";
-const DEFAULT_APP_SETTINGS = {
-  title: "Bread Tracker",
-  itemSingular: "loaf",
-  itemPlural: "loaves",
-  enableRatings: true,
-  enableFeedback: true,
-};
 
-function normalizeData(raw) {
-  const data = raw || {};
-  return {
-    breadTypes: Array.isArray(data.breadTypes) ? data.breadTypes : [],
-    people: Array.isArray(data.people) ? data.people : [],
-    lists: Array.isArray(data.lists) ? data.lists : [],
-    memberships: Array.isArray(data.memberships) ? data.memberships : [],
-    gifts: Array.isArray(data.gifts) ? data.gifts : [],
-    appSettings: { ...DEFAULT_APP_SETTINGS, ...(data.appSettings || {}) },
-  };
-}
-
-function downloadTextFile(filename, content, mimeType = "text/plain;charset=utf-8") {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function parseCsvLine(line) {
-  const result = [];
-  let current = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i += 1) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i += 1;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (ch === "," && !inQuotes) {
-      result.push(current.trim());
-      current = "";
-    } else {
-      current += ch;
-    }
-  }
-  result.push(current.trim());
-  return result;
-}
-
-function parseCsv(text) {
-  const lines = text.split(/\r?\n/).filter((line) => line.trim());
-  if (!lines.length) return [];
-  const headers = parseCsvLine(lines[0]).map((h) => h.trim());
-  return lines.slice(1).map((line) => {
-    const values = parseCsvLine(line);
-    return headers.reduce((obj, header, index) => {
-      obj[header] = values[index] || "";
-      return obj;
-    }, {});
-  });
-}
-
-function toCsvValue(value) {
-  const str = value == null ? "" : String(value);
-  return /[",]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
-}
-
-function buildCsv(rows, headers) {
-  const lines = [headers.join(",")];
-  for (const row of rows) {
-    lines.push(headers.map((header) => toCsvValue(row[header] || "")).join(","));
-  }
-  return lines.join("\n");
-}
 
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-
-function todayInputValue() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function formatDate(value) {
-  if (!value) return "Never";
-  const d = new Date(value + "T12:00:00");
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
-
-function defaultData() {
-  const fishList = "list_fish";
-  const neighborsList = "list_neighbors";
-  const p1 = "p_joe";
-  const p2 = "p_mary";
-  const p3 = "p_ed";
-  const p4 = "p_tom";
-  const p5 = "p_nancy";
-  const p6 = "p_helen";
-
-  return normalizeData({
-    appSettings: { ...DEFAULT_APP_SETTINGS },
-    breadTypes: [
-      { id: "b1", name: "Sourdough", isCurrent: true },
-      { id: "b2", name: "Rye", isCurrent: false },
-      { id: "b3", name: "Italian Loaf", isCurrent: false },
-      { id: "b4", name: "Honey Wheat", isCurrent: false },
-    ],
-    people: [
-      { id: p1, name: "Joe Smith", associatedName: "Linda Smith", howMet: "Fish dinners", note: "New kitchen volunteer", phone: "716-555-0123", archived: false },
-      { id: p2, name: "Mary Collins", associatedName: "", howMet: "Fish dinners", note: "Fish fry prep", phone: "", archived: false },
-      { id: p3, name: "Ed Nowak", associatedName: "", howMet: "Fish dinners", note: "Dish room", phone: "", archived: false },
-      { id: p4, name: "Tom Sweeney", associatedName: "", howMet: "Fish dinners", note: "Cashier", phone: "", archived: false },
-      { id: p5, name: "Nancy Weber", associatedName: "", howMet: "Neighbor", note: "Kitchen helper", phone: "", archived: false },
-      { id: p6, name: "Helen Parker", associatedName: "Bob Parker", howMet: "Neighbor", note: "", phone: "", archived: false },
-    ],
-    lists: [
-      { id: fishList, name: "Fish Dinner Volunteers" },
-      { id: neighborsList, name: "Neighbors" },
-    ],
-    memberships: [
-      { id: uid(), personId: p1, listId: fishList, giftedThisCycle: false, isNewToList: true },
-      { id: uid(), personId: p2, listId: fishList, giftedThisCycle: false, isNewToList: false },
-      { id: uid(), personId: p3, listId: fishList, giftedThisCycle: false, isNewToList: false },
-      { id: uid(), personId: p4, listId: fishList, giftedThisCycle: true, isNewToList: false },
-      { id: uid(), personId: p5, listId: fishList, giftedThisCycle: true, isNewToList: false },
-      { id: uid(), personId: p5, listId: neighborsList, giftedThisCycle: false, isNewToList: false },
-      { id: uid(), personId: p6, listId: neighborsList, giftedThisCycle: false, isNewToList: true },
-    ],
-    gifts: [
-      { id: uid(), personId: p1, listId: neighborsList, breadTypeName: "Sourdough", date: "2026-03-01", feedback: "", rating: null },
-      { id: uid(), personId: p2, listId: fishList, breadTypeName: "Rye", date: "2026-02-02", feedback: "", rating: null },
-      { id: uid(), personId: p3, listId: fishList, breadTypeName: "Sourdough", date: "2026-01-10", feedback: "", rating: null },
-      { id: uid(), personId: p4, listId: fishList, breadTypeName: "Sourdough", date: "2026-03-08", feedback: "", rating: null },
-      { id: uid(), personId: p5, listId: neighborsList, breadTypeName: "Italian Loaf", date: "2025-09-20", feedback: "", rating: 4 },
-    ],
-  });
-}
-
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? normalizeData(JSON.parse(raw)) : defaultData();
-  } catch {
-    return defaultData();
-  }
 }
 
 function SectionCard({ title, action, children }) {
@@ -661,7 +514,7 @@ function BreadGiftingTrackerWebApp() {
   const backupInputRef = useRef(null);
   const peopleCsvInputRef = useRef(null);
 
-  useEffect(() => { setData(loadData()); }, []);
+  useEffect(() => { setData(loadData(STORAGE_KEY)); }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }, [data]);
   useEffect(() => {
     if (!undoGift) return;

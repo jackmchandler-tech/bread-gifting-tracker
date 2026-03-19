@@ -1,3 +1,11 @@
+v1.2.4
+  - Began refactoring App.jsx into smaller files.
+  - Moved constants into src/constants.js.
+  - Moved date helpers into src/utils/dates.js.
+  - Moved CSV helpers into src/utils/csv.js.
+  - Moved storage/default data helpers into src/utils/storage.js.
+  - Moved file download helper into src/utils/file.js.
+  - No behavior changes intended in this release.
 v1.2.3
   - Removed Setup from Quick Access. Setup is now available only as a tab.
   - Added ReleaseNotes.txt to track releases, bug fixes, and feature additions.
