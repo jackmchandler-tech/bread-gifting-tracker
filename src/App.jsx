@@ -514,7 +514,7 @@ function BreadGiftingTrackerWebApp() {
   const backupInputRef = useRef(null);
   const peopleCsvInputRef = useRef(null);
 
-  useEffect(() => { setData(loadData()); }, []);
+  useEffect(() => { setData(loadData(STORAGE_KEY)); }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }, [data]);
   useEffect(() => {
     if (!undoGift) return;
