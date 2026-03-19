@@ -607,12 +607,43 @@ function BreadGiftingTrackerWebApp() {
   function updateGiftDate(giftId, date) { setData((d) => ({ ...d, gifts: d.gifts.map((g) => (g.id === giftId ? { ...g, date } : g)) })); setUndoGift((g) => (g && g.id === giftId ? { ...g, date } : g)); }
   function confirmDeleteBreadType() { if (!deleteBreadId) return; removeBreadType(deleteBreadId); setDeleteBreadId(null); }
   function exportBackup() { downloadTextFile(`giving-tracker-backup-${todayInputValue()}.json`, JSON.stringify(data, null, 2), "application/json;charset=utf-8"); }
-  function exportGiftHistoryCsv() {
-    const rows = data.gifts.slice().sort((a, b) => b.date.localeCompare(a.date)).map((gift) => ({
-      date: gift.date, personName: personById(gift.personId)?.name || "", associatedName: personById(gift.personId)?.associatedName || "",
-      giftType: gift.breadTypeName, groupName: data.lists.find((l) => l.id === gift.listId)?.name || "All People", rating: gift.rating || "", feedback: gift.feedback || "",
-    }));
-    downloadTextFile(`giving-history-${todayInputValue()}.csv`, buildCsv(rows, ["date", "personName", "associatedName", "giftType", "groupName", "rating", "feedback"]), "text/csv;charset=utf-8");
+  function exportPeopleCsv() {
+    const rows = [];
+    const activePeople = data.people.filter((p) => !p.archived);
+  
+    for (const person of activePeople) {
+      const personMemberships = data.memberships.filter((m) => m.personId === person.id);
+  
+      if (!personMemberships.length) {
+        rows.push({
+          name: person.name || "",
+          associatedName: person.associatedName || "",
+          howMet: person.howMet || "",
+          note: person.note || "",
+          phone: person.phone || "",
+          groupName: "",
+        });
+        continue;
+      }
+  
+      for (const membership of personMemberships) {
+        const group = data.lists.find((l) => l.id === membership.listId);
+        rows.push({
+          name: person.name || "",
+          associatedName: person.associatedName || "",
+          howMet: person.howMet || "",
+          note: person.note || "",
+          phone: person.phone || "",
+          groupName: group?.name || "",
+        });
+      }
+    }
+  
+    downloadTextFile(
+      `people-export-${todayInputValue()}.csv`,
+      buildCsv(rows, ["name", "associatedName", "howMet", "note", "phone", "groupName"]),
+      "text/csv;charset=utf-8"
+    );
   }
   function importBackupFile(file) {
     if (!file) return;
@@ -624,37 +655,97 @@ function BreadGiftingTrackerWebApp() {
     reader.readAsText(file);
   }
   function importPeopleCsvFile(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const rows = parseCsv(String(reader.result || "")); if (!rows.length) { alert("The CSV did not contain any rows."); return; }
-        setData((d) => {
-          const nextPeople = [...d.people], nextLists = [...d.lists], nextMemberships = [...d.memberships];
-          for (const row of rows) {
-            const name = (row.name || row.Name || "").trim(); if (!name) continue;
-            const associatedName = (row.associatedName || row.AssociatedName || row.associated || row.Associated || "").trim();
-            const howMet = (row.howMet || row.HowMet || row.met || "").trim();
-            const note = (row.note || row.Note || row.position || row.Position || "").trim();
-            const phone = (row.phone || row.Phone || row.phoneNumber || row.PhoneNumber || "").trim();
-            const listName = (row.groupName || row.GroupName || row.listName || row.ListName || row.group || row.Group || row.list || row.List || "").trim();
-            const duplicate = nextPeople.find((p) => p.name.toLowerCase() === name.toLowerCase() && (p.associatedName || "").toLowerCase() === associatedName.toLowerCase());
-            const personId = duplicate?.id || uid();
-            if (!duplicate) nextPeople.push({ id: personId, name, associatedName, howMet, note, phone, archived: false });
-            if (listName) {
-              let list = nextLists.find((l) => l.name.toLowerCase() === listName.toLowerCase());
-              if (!list) { list = { id: uid(), name: listName }; nextLists.push(list); }
-              const existingMembership = nextMemberships.find((m) => m.personId === personId && m.listId === list.id);
-              if (!existingMembership) nextMemberships.push({ id: uid(), personId, listId: list.id, giftedThisCycle: false, isNewToList: true });
+  if (!file) return;
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try {
+      const rows = parseCsv(String(reader.result || ""));
+      if (!rows.length) {
+        alert("The CSV did not contain any rows.");
+        return;
+      }
+
+      setData((d) => {
+        const nextPeople = [...d.people];
+        const nextLists = [...d.lists];
+        const nextMemberships = [...d.memberships];
+
+        for (const row of rows) {
+          const name = (row.name || row.Name || row.personName || row.PersonName || "").trim();
+          if (!name) continue;
+
+          const associatedName = (row.associatedName || row.AssociatedName || row.associated || row.Associated || "").trim();
+          const howMet = (row.howMet || row.HowMet || row.met || "").trim();
+          const note = (row.note || row.Note || row.position || row.Position || "").trim();
+          const phone = (row.phone || row.Phone || row.phoneNumber || row.PhoneNumber || "").trim();
+          const groupName = (row.groupName || row.GroupName || row.listName || row.ListName || row.group || row.Group || row.list || row.List || "").trim();
+
+          let person = nextPeople.find(
+            (p) =>
+              (p.name || "").toLowerCase() === name.toLowerCase() &&
+              (p.associatedName || "").toLowerCase() === associatedName.toLowerCase()
+          );
+
+          if (!person) {
+            person = {
+              id: uid(),
+              name,
+              associatedName,
+              howMet,
+              note,
+              phone,
+              archived: false,
+            };
+            nextPeople.push(person);
+          } else {
+            person.name = name || person.name;
+            person.associatedName = associatedName || person.associatedName;
+            person.howMet = howMet || person.howMet;
+            person.note = note || person.note;
+            person.phone = phone || person.phone;
+            if (person.archived) person.archived = false;
+          }
+
+          if (groupName) {
+            let group = nextLists.find((l) => (l.name || "").toLowerCase() === groupName.toLowerCase());
+            if (!group) {
+              group = { id: uid(), name: groupName };
+              nextLists.push(group);
+            }
+
+            const existingMembership = nextMemberships.find(
+              (m) => m.personId === person.id && m.listId === group.id
+            );
+
+            if (!existingMembership) {
+              nextMemberships.push({
+                id: uid(),
+                personId: person.id,
+                listId: group.id,
+                giftedThisCycle: false,
+                isNewToList: true,
+              });
             }
           }
-          return { ...d, people: nextPeople, lists: nextLists, memberships: nextMemberships };
-        });
-        setTab("people");
-      } catch { alert("That CSV file could not be imported."); }
-    };
-    reader.readAsText(file);
-  }
+        }
+
+        return {
+          ...d,
+          people: nextPeople,
+          lists: nextLists,
+          memberships: nextMemberships,
+        };
+      });
+
+      setTab("people");
+    } catch {
+      alert("That CSV file could not be imported.");
+    }
+  };
+
+  reader.readAsText(file);
+}
 
   const allPeopleRows = useMemo(() => data.people.filter((p) => !p.archived).filter((p) => {
     const q = search.trim().toLowerCase();
@@ -722,10 +813,10 @@ function BreadGiftingTrackerWebApp() {
             <div className="grid sm:grid-cols-2 gap-3">
               <AppButton onClick={exportBackup} variant="secondary">Export Backup</AppButton>
               <AppButton onClick={() => backupInputRef.current?.click()} variant="secondary">Import Backup</AppButton>
-              <AppButton onClick={exportGiftHistoryCsv} variant="secondary">Export Gift History CSV</AppButton>
+              <AppButton onClick={exportPeopleCsv} variant="secondary">Export People CSV</AppButton>
               <AppButton onClick={() => peopleCsvInputRef.current?.click()} variant="secondary">Import People CSV</AppButton>
             </div>
-            <div className="text-sm text-gray-500">CSV import accepts headers such as: name, associatedName, howMet, note, phone, groupName.</div>
+            <div className="text-sm text-gray-500">Export People CSV to get the correct template. Supported columns are: name, associatedName, howMet, note, phone, groupName.</div>
             <input ref={backupInputRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => { importBackupFile(e.target.files?.[0]); e.target.value = ""; }} />
             <input ref={peopleCsvInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { importPeopleCsvFile(e.target.files?.[0]); e.target.value = ""; }} />
           </SectionCard>
