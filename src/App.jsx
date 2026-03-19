@@ -25,7 +25,7 @@ const X = ({ className = "w-5 h-5" }) => <Icon className={className}>✕</Icon>;
 const SettingsIcon = ({ className = "w-5 h-5" }) => <Icon className={className}>⚙</Icon>;
 
 const STORAGE_KEY = "bread-gifting-tracker-v1";
-const APP_VERSION = "v1.2.1";
+const APP_VERSION = "v1.2.2";
 const DEFAULT_APP_SETTINGS = {
   title: "Bread Tracker",
   itemSingular: "loaf",
@@ -348,7 +348,7 @@ function BreadManagerScreen({ breadTypes, setCurrentBread, requestDeleteBreadTyp
   );
 }
 
-function SetupScreen({ settings, onSave }) {
+function SetupScreen({ settings, onSave, savedPulse }) {
   const [form, setForm] = useState({
     title: settings.title || "Bread Tracker",
     itemSingular: settings.itemSingular || "loaf",
@@ -368,9 +368,12 @@ function SetupScreen({ settings, onSave }) {
   }, [settings]);
 
   return (
-    <div className="space-y-4">
-      <SectionCard title="Setup">
-        <div className="space-y-3">
+      <div className="space-y-4">
+        <SectionCard
+          title="Setup"
+          action={<Badge tone={savedPulse ? "green" : "gray"}>{savedPulse ? "Saved" : "Ready"}</Badge>}
+        >
+          <div className="space-y-3">
           <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="App title" className="w-full rounded-2xl border px-3 py-3 outline-none" />
           <div className="grid grid-cols-2 gap-3">
             <input value={form.itemSingular} onChange={(e) => setForm((f) => ({ ...f, itemSingular: e.target.value }))} placeholder="Singular item" className="w-full rounded-2xl border px-3 py-3 outline-none" />
@@ -393,6 +396,9 @@ function SetupScreen({ settings, onSave }) {
               enableFeedback: !!form.enableFeedback,
             })}>Save Setup</AppButton>
           </div>
+            <div className="text-xs text-gray-500">
+              These toggles affect visibility only. Existing ratings and feedback are preserved.
+            </div>
         </div>
       </SectionCard>
       <SectionCard title="Preview">
@@ -400,8 +406,8 @@ function SetupScreen({ settings, onSave }) {
           <div><span className="font-medium">Title:</span> {form.title || "Giving Tracker"}</div>
           <div><span className="font-medium">Single item:</span> {form.itemSingular || "gift"}</div>
           <div><span className="font-medium">Plural item:</span> {form.itemPlural || "gifts"}</div>
-          <div><span className="font-medium">Ratings:</span> {form.enableRatings ? "On" : "Off"}</div>
-          <div><span className="font-medium">Feedback:</span> {form.enableFeedback ? "On" : "Off"}</div>
+          <div><span className="font-medium">Ratings:</span> {form.enableRatings ? "On" : "Hidden"}</div>
+          <div><span className="font-medium">Feedback:</span> {form.enableFeedback ? "On" : "Hidden"}</div>
         </div>
       </SectionCard>
     </div>
@@ -495,7 +501,7 @@ function PersonDetailModal({ person, gifts, lists, enableFeedback, enableRatings
                 {enableRatings && <StarPicker value={rating} onChange={setRating} />}
                 <div className="flex gap-2">
                   {editingFeedback && <AppButton variant="secondary" onClick={() => setEditingFeedback(false)}>Cancel</AppButton>}
-                  <AppButton onClick={() => { onSaveFeedback(enableFeedback ? feedback : "", enableRatings ? rating : 0); setEditingFeedback(false); }}>Save Feedback</AppButton>
+                  <AppButton onClick={() => {onSaveFeedback(feedback, rating); setEditingFeedback(false);}}> Save Feedback</AppButton>
                 </div>
               </div>
             )}
@@ -605,7 +611,7 @@ function EditGiftFeedbackModal({ gift, enableFeedback, enableRatings, onClose, o
         {enableRatings && <StarPicker value={rating} onChange={setRating} />}
         <div className="flex justify-end gap-2">
           <AppButton onClick={onClose} variant="secondary">Cancel</AppButton>
-          <AppButton onClick={() => onSave(enableFeedback ? feedback : "", enableRatings ? rating : 0)}>Save Changes</AppButton>
+          <AppButton onClick={() => {onSaveFeedback(feedback, rating); setEditingFeedback(false);}} >Save Feedback</AppButton>
         </div>
       </div>
     </Modal>
@@ -651,6 +657,7 @@ function BreadGiftingTrackerWebApp() {
   const [editPersonId, setEditPersonId] = useState(null);
   const [editFeedbackGiftId, setEditFeedbackGiftId] = useState(null);
   const [renameGroupId, setRenameGroupId] = useState(null);
+  const [setupSavedPulse, setSetupSavedPulse] = useState(false);
   const backupInputRef = useRef(null);
   const peopleCsvInputRef = useRef(null);
 
@@ -661,6 +668,12 @@ function BreadGiftingTrackerWebApp() {
     const t = setTimeout(() => setUndoGift(null), 5000);
     return () => clearTimeout(t);
   }, [undoGift]);
+  
+  useEffect(() => {
+    if (!setupSavedPulse) return;
+    const t = setTimeout(() => setSetupSavedPulse(false), 1800);
+    return () => clearTimeout(t);
+  }, [setupSavedPulse]);
 
   const settings = data.appSettings || DEFAULT_APP_SETTINGS;
   const itemSingular = settings.itemSingular || "gift";
@@ -694,16 +707,13 @@ function BreadGiftingTrackerWebApp() {
     const trimmed = name.trim(); if (!trimmed) return;
     setData((d) => ({ ...d, lists: d.lists.map((list) => (list.id === listId ? { ...list, name: trimmed } : list)) }));
   }
-  function updateAppSettings(updates) { setData((d) => ({ ...d, appSettings: { ...DEFAULT_APP_SETTINGS, ...(d.appSettings || {}), ...updates } })); }
-  function addPerson(form, listId = null) {
-    const trimmed = form.name.trim(); if (!trimmed) return;
-    const personId = uid();
-    setData((d) => ({
-      ...d,
-      people: [...d.people, { id: personId, name: trimmed, associatedName: form.associatedName.trim(), howMet: form.howMet.trim(), note: form.note.trim(), phone: form.phone.trim(), archived: false }],
-      memberships: listId ? [...d.memberships, { id: uid(), personId, listId, giftedThisCycle: false, isNewToList: true }] : d.memberships,
-    }));
-  }
+  function updateAppSettings(updates) {
+  setData((d) => ({
+    ...d,
+    appSettings: { ...DEFAULT_APP_SETTINGS, ...(d.appSettings || {}), ...updates },
+  }));
+  setSetupSavedPulse(true);
+}
   function addExistingPersonToList(personId, listId) {
     setData((d) => {
       if (d.memberships.some((m) => m.personId === personId && m.listId === listId)) return d;
@@ -923,7 +933,13 @@ function BreadGiftingTrackerWebApp() {
         </div>}
 
         {tab === "bread" && <BreadManagerScreen breadTypes={data.breadTypes} setCurrentBread={setCurrentBread} requestDeleteBreadType={setDeleteBreadId} openAdd={() => setShowBreadManager(true)} />}
-        {tab === "setup" && <SetupScreen settings={settings} onSave={updateAppSettings} />}
+        {tab === "setup" && (
+          <SetupScreen
+            settings={settings}
+            onSave={updateAppSettings}
+            savedPulse={setupSavedPulse}
+          />
+        )}
       </div>
 
       <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t z-40">
