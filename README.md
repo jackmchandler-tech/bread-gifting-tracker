@@ -1,6 +1,6 @@
 # Bread Gifting Tracker
 
-A mobile-first React/Vite app for tracking bread recipients, reusable lists, gift history, and feedback.
+A mobile-first React/Vite app for tracking gift recipients, reusable lists, gift history, and feedback.
 
 ## Local development
 
