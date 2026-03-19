@@ -861,7 +861,6 @@ function BreadGiftingTrackerWebApp() {
               <AppButton className="justify-start text-left" onClick={() => setTab("people")}>All People</AppButton>
               <AppButton className="justify-start text-left" onClick={() => setTab("lists")} variant="secondary">Groups</AppButton>
               <AppButton className="justify-start text-left" onClick={() => setTab("bread")} variant="secondary">Gift Types</AppButton>
-              <AppButton className="justify-start text-left" onClick={() => setTab("setup")} variant="secondary">Setup</AppButton>
               {!!quickAccessList && <AppButton className="justify-start text-left" onClick={() => { setActiveListId(quickAccessList.id); setLastOpenedListId(quickAccessList.id); setSearch(""); setTab("listDetail"); }} variant="secondary">Continue {quickAccessList.name}</AppButton>}
             </div>
           </SectionCard>

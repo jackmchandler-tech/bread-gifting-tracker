@@ -1,0 +1,25 @@
+v1.2.3
+  - Removed Setup from Quick Access. Setup is now available only as a tab.
+  - Added ReleaseNotes.txt to track releases, bug fixes, and feature additions.
+
+v1.2.2
+  - Added visible Saved/Ready feedback in Setup.
+  - Fixed ratings and feedback toggles so they affect visibility only and do not erase saved data.
+
+v1.2.1
+  - Updated defaults to Bread Tracker, loaf, and loaves.
+  - Stabilized the app after regression issues and restored a working deployment baseline.
+
+v1.2
+  - Added Setup tab.
+  - Added configurable title, singular/plural item labels, and ratings/feedback visibility controls.
+
+v1.1
+  - Renamed Lists to Groups.
+  - Renamed Bread Types to Gift Types.
+  - Added Rename Group support.
+  - Added version display in the header.
+
+v1.0
+  - Initial working release.
+  - Added people, groups, gift tracking, history, CSV import/export, and deployed PWA support.
