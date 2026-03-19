@@ -1,4 +1,8 @@
-v1.2.4
+v1.2.5
+  - Replaced gift-history CSV export with Export People CSV.
+  - Aligned CSV export and import to use the same people-focused structure.
+  - CSV import now supports bulk adds and updates for people.
+  - CSV import now auto-creates groups when needed and adds memberships without removing existing ones.v1.2.4
   - Began refactoring App.jsx into smaller files.
   - Moved constants into src/constants.js.
   - Moved date helpers into src/utils/dates.js.
