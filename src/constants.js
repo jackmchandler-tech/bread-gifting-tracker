@@ -1,5 +1,5 @@
 export const STORAGE_KEY = "bread-gifting-tracker-v1";
-export const APP_VERSION = "v1.2.5";
+export const APP_VERSION = "v1.2.5.1";
 
 export const DEFAULT_APP_SETTINGS = {
   title: "Bread Tracker",
