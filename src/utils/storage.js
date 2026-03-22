@@ -8,7 +8,7 @@ export function normalizeData(raw) {
   const data = raw || {};
   return {
     breadTypes: Array.isArray(data.breadTypes) ? data.breadTypes : [],
-    people: Array.isArray(data.people) ? data.people : [],
+    people: Array.isArray(data.people) ? data.people.map((p) => ({ active: true, ...p })) : [],
     lists: Array.isArray(data.lists) ? data.lists : [],
     memberships: Array.isArray(data.memberships) ? data.memberships : [],
     gifts: Array.isArray(data.gifts) ? data.gifts : [],
@@ -35,12 +35,12 @@ export function defaultData() {
       { id: "b4", name: "Honey Wheat", isCurrent: false },
     ],
     people: [
-      { id: p1, name: "Joe Smith", associatedName: "Linda Smith", howMet: "Fish dinners", note: "New kitchen volunteer", phone: "716-555-0123", archived: false },
-      { id: p2, name: "Mary Collins", associatedName: "", howMet: "Fish dinners", note: "Fish fry prep", phone: "", archived: false },
-      { id: p3, name: "Ed Nowak", associatedName: "", howMet: "Fish dinners", note: "Dish room", phone: "", archived: false },
-      { id: p4, name: "Tom Sweeney", associatedName: "", howMet: "Fish dinners", note: "Cashier", phone: "", archived: false },
-      { id: p5, name: "Nancy Weber", associatedName: "", howMet: "Neighbor", note: "Kitchen helper", phone: "", archived: false },
-      { id: p6, name: "Helen Parker", associatedName: "Bob Parker", howMet: "Neighbor", note: "", phone: "", archived: false },
+      { id: p1, name: "Joe Smith", associatedName: "Linda Smith", howMet: "Fish dinners", note: "New kitchen volunteer", phone: "716-555-0123", active: true },
+      { id: p2, name: "Mary Collins", associatedName: "", howMet: "Fish dinners", note: "Fish fry prep", phone: "", active: true },
+      { id: p3, name: "Ed Nowak", associatedName: "", howMet: "Fish dinners", note: "Dish room", phone: "", active: true },
+      { id: p4, name: "Tom Sweeney", associatedName: "", howMet: "Fish dinners", note: "Cashier", phone: "", active: true },
+      { id: p5, name: "Nancy Weber", associatedName: "", howMet: "Neighbor", note: "Kitchen helper", phone: "", active: true },
+      { id: p6, name: "Helen Parker", associatedName: "Bob Parker", howMet: "Neighbor", note: "", phone: "", active: true },
     ],
     lists: [
       { id: fishList, name: "Fish Dinner" },
