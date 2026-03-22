@@ -814,10 +814,12 @@ function BreadGiftingTrackerWebApp() {
               howMet,
               note,
               phone,
-              archived: false,
+              // JMC found archived: false,
+              active: true,
             };
             nextPeople.push(person);
-          else {
+            // JMC added closing parens before the else
+          } else {
             person.name = name || person.name;
             person.associatedName = associatedName || person.associatedName;
             person.howMet = howMet || person.howMet;
