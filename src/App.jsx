@@ -121,7 +121,29 @@ function PersonRow({ row, mode, itemSingular, itemPlural, onGift, onOpen, onTogg
     </div>
   );
 }
+//
+// added for 1.2.6
+//
+function deactivatePerson(personId) {
+  setData((d) => ({
+    ...d,
+    people: d.people.map((p) =>
+      p.id === personId ? { ...p, active: false } : p
+    ),
+  }));
+} // end of deactivatePerson()
 
+function restorePerson(personId) {
+  setData((d) => ({
+    ...d,
+    people: d.people.map((p) =>
+      p.id === personId ? { ...p, active: true } : p
+    ),
+  }));
+} // end of restorePerson()
+//
+// end of 1.2.6 addition
+//
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-3">
@@ -201,7 +223,7 @@ function BreadManagerScreen({ breadTypes, setCurrentBread, requestDeleteBreadTyp
   );
 }
 
-function SetupScreen({ settings, onSave, savedPulse }) {
+function SetupScreen({ settings, onSave, savedPulse, data, onRestore }) {
   const [form, setForm] = useState({
     title: settings.title || "Bread Tracker",
     itemSingular: settings.itemSingular || "loaf",
@@ -263,6 +285,31 @@ function SetupScreen({ settings, onSave, savedPulse }) {
           <div><span className="font-medium">Feedback:</span> {form.enableFeedback ? "On" : "Hidden"}</div>
         </div>
       </SectionCard>
+      //
+      // Added for 1.2.6
+      //
+      <SectionCard title="Inactive People">
+        <div className="space-y-2">
+          {data.people.filter((p) => p.active === false).map((p) => (
+            <div
+              key={p.id}
+              className="flex justify-between items-center border rounded-xl px-3 py-2"
+            >
+              <div>
+                <div className="font-medium">{p.name}</div>
+                <div className="text-xs text-gray-500">{p.associatedName || ""}</div>
+              </div>
+              <AppButton onClick={() => onRestore(p.id)}>
+                Restore
+              </AppButton>
+            </div>
+          ))}
+      
+          {!data.people.some((p) => p.active === false) && (
+            <div className="text-sm text-gray-500">No inactive people.</div>
+          )}
+  </div>
+</SectionCard>
     </div>
   );
 }
@@ -295,7 +342,8 @@ function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
   const [search, setSearch] = useState("");
   const alreadyInList = new Set(memberships.filter((m) => m.listId === list.id).map((m) => m.personId));
   const options = people
-    .filter((p) => !p.archived && !alreadyInList.has(p.id))
+    //1.2.6.filter((p) => !p.archived && !alreadyInList.has(p.id))
+    .filter((p) => p.active !==false && !alreadyInList.has(p.id))
     .filter((p) => {
       const q = search.trim().toLowerCase();
       return !q || p.name.toLowerCase().includes(q) || p.associatedName.toLowerCase().includes(q);
@@ -320,7 +368,22 @@ function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
   );
 }
 
-function PersonDetailModal({ person, gifts, lists, enableFeedback, enableRatings, onClose, onEditPerson, onEditGiftFeedback, onSaveFeedback }) {
+//1.2.6function PersonDetailModal({ person, gifts, lists, enableFeedback, enableRatings, onClose, onEditPerson, onEditGiftFeedback, onSaveFeedback }) {
+function PersonDetailModal({
+  person,
+  gifts,
+  lists,
+  memberships,
+  enableFeedback,
+  enableRatings,
+  onClose,
+  onEditPerson,
+  onEditGiftFeedback,
+  onSaveFeedback,
+  onRemoveFromGroup,
+  onOpenAddToGroup,
+  onDeactivate,
+}) {
   const latest = gifts[0] || null;
   const [feedback, setFeedback] = useState(latest?.feedback || "");
   const [rating, setRating] = useState(latest?.rating || 0);
@@ -331,34 +394,50 @@ function PersonDetailModal({ person, gifts, lists, enableFeedback, enableRatings
   return (
     <Modal title={person.name} onClose={onClose}>
       <div className="space-y-4">
-        <SectionCard title="Details" action={<AppButton onClick={onEditPerson} variant="secondary">Edit Person</AppButton>}>
-          {!!person.associatedName && <div className="text-sm"><span className="font-medium">Associated:</span> {person.associatedName}</div>}
-          {!!person.howMet && <div className="text-sm"><span className="font-medium">How met:</span> {person.howMet}</div>}
-          {!!person.note && <div className="text-sm"><span className="font-medium">Note:</span> {person.note}</div>}
-          {!!person.phone && <div className="text-sm flex items-center gap-2"><Phone className="w-4 h-4" />{person.phone}</div>}
+        <SectionCard
+          title="Details"
+          action={
+            <AppButton onClick={onEditPerson} variant="secondary">
+              Edit Person
+            </AppButton>
+          }
+        >
+          {!!person.associatedName && (
+            <div className="text-sm">
+              <span className="font-medium">Associated:</span> {person.associatedName}
+            </div>
+          )}
+          {!!person.howMet && (
+            <div className="text-sm">
+              <span className="font-medium">How met:</span> {person.howMet}
+            </div>
+          )}
+          {!!person.note && (
+            <div className="text-sm">
+              <span className="font-medium">Note:</span> {person.note}
+            </div>
+          )}
+          {!!person.phone && (
+            <div className="text-sm flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              {person.phone}
+            </div>
+          )}
+        
+          <div className="pt-2">
+            <AppButton
+              variant="danger"
+              onClick={() => {
+                if (confirm("Deactivate this person? They will be hidden but not deleted.")) {
+                  onDeactivate(person.id);
+                  onClose();
+                }
+              }}
+            >
+              Deactivate Person
+            </AppButton>
+          </div>
         </SectionCard>
-
-        {latest && (
-          <SectionCard title="Latest Gift">
-            <div className="text-sm">{formatDate(latest.date)} · {latest.breadTypeName} · {sourceName(latest)}</div>
-            {hasSavedFeedback && !editingFeedback && (
-              <div className="space-y-2">
-                {!!latest.rating && enableRatings && <div className="text-sm text-amber-700">{"★".repeat(latest.rating)}{"☆".repeat(5 - latest.rating)}</div>}
-                {!!latest.feedback && enableFeedback && <div className="text-sm">{latest.feedback}</div>}
-                {(enableFeedback || enableRatings) && <AppButton variant="secondary" onClick={() => setEditingFeedback(true)}>Edit Feedback</AppButton>}
-              </div>
-            )}
-            {(!hasSavedFeedback || editingFeedback) && (enableFeedback || enableRatings) && (
-              <div className="space-y-3">
-                {enableFeedback && <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Feedback for this gift" className="w-full rounded-2xl border px-3 py-3 min-h-[100px] outline-none" />}
-                {enableRatings && <StarPicker value={rating} onChange={setRating} />}
-                <div className="flex gap-2">
-                  {editingFeedback && <AppButton variant="secondary" onClick={() => setEditingFeedback(false)}>Cancel</AppButton>}
-                  <AppButton onClick={() => {onSaveFeedback(feedback, rating); setEditingFeedback(false);}}> Save Feedback</AppButton>
-                </div>
-              </div>
-            )}
-          </SectionCard>
         )}
 
         <SectionCard title="Gift History">
@@ -535,7 +614,13 @@ function BreadGiftingTrackerWebApp() {
   const activeList = useMemo(() => data.lists.find((l) => l.id === activeListId) || null, [data.lists, activeListId]);
   const quickAccessList = useMemo(() => data.lists.find((l) => l.id === (lastOpenedListId || activeListId)) || data.lists[0] || null, [data.lists, lastOpenedListId, activeListId]);
 
-  function personById(id) { return data.people.find((p) => p.id === id); }
+  // modified 1.2.6 function personById(id) { return data.people.find((p) => p.id === id); }
+  function personById(id) {
+    return data.people.find((p) => p.id === id && p.active !== false);
+  } // end of personById()
+  //
+  // end of 1.2.6 addition
+  //
   function giftsForPerson(id) { return data.gifts.filter((g) => g.personId === id).sort((a, b) => b.date.localeCompare(a.date)); }
   function lastGiftAnywhere(personId) { return giftsForPerson(personId)[0] || null; }
   function lastGiftOnList(personId, listId) { return data.gifts.filter((g) => g.personId === personId && g.listId === listId).sort((a, b) => b.date.localeCompare(a.date))[0] || null; }
@@ -614,7 +699,7 @@ function BreadGiftingTrackerWebApp() {
           howMet: form.howMet.trim(),
           note: form.note.trim(),
           phone: form.phone.trim(),
-          archived: false,
+          active: true,
         },
       ],
       memberships: listId
@@ -732,13 +817,13 @@ function BreadGiftingTrackerWebApp() {
               archived: false,
             };
             nextPeople.push(person);
-          } else {
+          else {
             person.name = name || person.name;
             person.associatedName = associatedName || person.associatedName;
             person.howMet = howMet || person.howMet;
             person.note = note || person.note;
             person.phone = phone || person.phone;
-            if (person.archived) person.archived = false;
+            person.active = true;
           }
 
           if (groupName) {
@@ -781,7 +866,8 @@ function BreadGiftingTrackerWebApp() {
   reader.readAsText(file);
 }
 
-  const allPeopleRows = useMemo(() => data.people.filter((p) => !p.archived).filter((p) => {
+  //const allPeopleRows = useMemo(() => data.people.filter((p) => !p.archived).filter((p) => {
+  const allPeopleRows = useMemo() => data.people.filter((p) => p.active !== false) => { // p1.2.6
     const q = search.trim().toLowerCase();
     return !q || p.name.toLowerCase().includes(q) || p.associatedName.toLowerCase().includes(q);
   }).map((person) => ({ person, neverGifted: !lastGiftAnywhere(person.id), lastAnywhere: lastGiftAnywhere(person.id), totalGifts: data.gifts.filter((g) => g.personId === person.id).length }))
@@ -795,7 +881,8 @@ function BreadGiftingTrackerWebApp() {
   const activeListRows = useMemo(() => {
     if (!activeListId) return [];
     return data.memberships.filter((m) => m.listId === activeListId).map((m) => {
-      const person = personById(m.personId); if (!person || person.archived) return null;
+      // 1.2.6 const person = personById(m.personId); if (!person || person.archived) return null;
+      const person = personById(m.personId); if (!person || person.active === false) return null; // 1.2.6
       return { person, checked: m.giftedThisCycle, isNewToList: m.isNewToList, neverGifted: !lastGiftAnywhere(person.id), lastAnywhere: lastGiftAnywhere(person.id), lastOnList: lastGiftOnList(person.id, activeListId) };
     }).filter(Boolean).filter((row) => {
       const q = search.trim().toLowerCase();
@@ -915,6 +1002,8 @@ function BreadGiftingTrackerWebApp() {
             settings={settings}
             onSave={updateAppSettings}
             savedPulse={setupSavedPulse}
+            data={data}
+            onRestore={restorePerson}
           />
         )}
       </div>
@@ -945,7 +1034,8 @@ function BreadGiftingTrackerWebApp() {
 
       {addPersonContext && <AddPersonModal list={data.lists.find((l) => l.id === addPersonContext.listId) || null} onClose={() => setAddPersonContext(null)} onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }} />}
       {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
-      {selectedPerson && <PersonDetailModal person={selectedPerson} gifts={selectedPersonGifts} lists={data.lists} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setPersonModalId(null)} onEditPerson={() => setEditPersonId(selectedPerson.id)} onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating)} />}
+      //1.2.6{selectedPerson && <PersonDetailModal person={selectedPerson} gifts={selectedPersonGifts} lists={data.lists} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setPersonModalId(null)} onEditPerson={() => setEditPersonId(selectedPerson.id)} onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating)} />}
+      {selectedPerson && (<PersonDetailModal person={selectedPerson} gifts={selectedPersonGifts} lists={data.lists} memberships={data.memberships} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setPersonModalId(null)} onEditPerson={() => setEditPersonId(selectedPerson.id)} onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating) } onRemoveFromGroup={(groupId) => removePersonFromGroup(selectedPerson.id, groupId)} onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)} onDeactivate={deactivatePerson} />)}
       {showBreadManager && <AddBreadModal onClose={() => setShowBreadManager(false)} onSave={(name) => { addBreadType(name); setShowBreadManager(false); }} />}
       {editGiftRow && <EditGiftDateModal gift={editGiftRow} onClose={() => setEditGiftRow(null)} onSave={(date) => { updateGiftDate(editGiftRow.id, date); setEditGiftRow(null); }} />}
       {deleteBreadId && <ConfirmDeleteBreadModal bread={data.breadTypes.find((b) => b.id === deleteBreadId)} onClose={() => setDeleteBreadId(null)} onConfirm={confirmDeleteBreadType} />}
