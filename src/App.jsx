@@ -289,7 +289,7 @@ function AddPersonModal({ list, onClose, onSave }) {
       </form>
     </Modal>
   );
-}
+} // end of AddPersonModal()
 
 function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
   const [search, setSearch] = useState("");
@@ -597,6 +597,40 @@ function BreadGiftingTrackerWebApp() {
     }));
     setUndoGift(null);
   }
+  function addPerson(form, listId = null) {
+    const trimmed = form.name.trim();
+    if (!trimmed) return;
+  
+    const personId = uid();
+  
+    setData((d) => ({
+      ...d,
+      people: [
+        ...d.people,
+        {
+          id: personId,
+          name: trimmed,
+          associatedName: form.associatedName.trim(),
+          howMet: form.howMet.trim(),
+          note: form.note.trim(),
+          phone: form.phone.trim(),
+          archived: false,
+        },
+      ],
+      memberships: listId
+        ? [
+            ...d.memberships,
+            {
+              id: uid(),
+              personId,
+              listId,
+              giftedThisCycle: false,
+              isNewToList: true,
+            },
+          ]
+        : d.memberships,
+    }));
+} // end of addPerson()
   function resetListCycle(listId) { setData((d) => ({ ...d, memberships: d.memberships.map((m) => (m.listId === listId ? { ...m, giftedThisCycle: false } : m)) })); }
   function updateLatestGiftFeedback(personId, feedback, rating) {
     const latest = giftsForPerson(personId)[0]; if (!latest) return;
