@@ -717,6 +717,20 @@ function BreadGiftingTrackerWebApp() {
         : d.memberships,
     }));
 } // end of addPerson()
+/* ================================================================================
+ * deactivatePerson()
+ * Hides the passed in user id. No data is deleted only the active flag is modified
+ * ================================================================================
+*/
+function deactivatePerson(personId) {
+  setData((d) => ({
+    ...d,
+    people: d.people.map((p) =>
+      p.id === personId ? { ...p, active: false } : p
+    ),
+  }));
+} // end of deactivatePerson()
+  
   function resetListCycle(listId) { setData((d) => ({ ...d, memberships: d.memberships.map((m) => (m.listId === listId ? { ...m, giftedThisCycle: false } : m)) })); }
   function updateLatestGiftFeedback(personId, feedback, rating) {
     const latest = giftsForPerson(personId)[0]; if (!latest) return;
@@ -1061,7 +1075,21 @@ function BreadGiftingTrackerWebApp() {
       {addPersonContext && <AddPersonModal list={data.lists.find((l) => l.id === addPersonContext.listId) || null} onClose={() => setAddPersonContext(null)} onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }} />}
       {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
       //1.2.6{selectedPerson && <PersonDetailModal person={selectedPerson} gifts={selectedPersonGifts} lists={data.lists} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setPersonModalId(null)} onEditPerson={() => setEditPersonId(selectedPerson.id)} onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating)} />}
-      {selectedPerson && (<PersonDetailModal person={selectedPerson} gifts={selectedPersonGifts} lists={data.lists} memberships={data.memberships} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setPersonModalId(null)} onEditPerson={() => setEditPersonId(selectedPerson.id)} onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating) } onRemoveFromGroup={(groupId) => removePersonFromGroup(selectedPerson.id, groupId)} onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)} onDeactivate={deactivatePerson} />)}
+      {selectedPerson && (
+        <PersonDetailModal person={selectedPerson} 
+          gifts={selectedPersonGifts} 
+          lists={data.lists} 
+          memberships={data.memberships} 
+          enableFeedback={settings.enableFeedback} 
+          enableRatings={settings.enableRatings} 
+          onClose={() => setPersonModalId(null)} 
+          onEditPerson={() => setEditPersonId(selectedPerson.id)} 
+          onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} 
+          onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating) } 
+          onRemoveFromGroup={(groupId) => removePersonFromGroup(selectedPerson.id, groupId)} 
+          onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)} 
+          onDeactivate={deactivatePerson} 
+        />)}
       {showBreadManager && <AddBreadModal onClose={() => setShowBreadManager(false)} onSave={(name) => { addBreadType(name); setShowBreadManager(false); }} />}
       {editGiftRow && <EditGiftDateModal gift={editGiftRow} onClose={() => setEditGiftRow(null)} onSave={(date) => { updateGiftDate(editGiftRow.id, date); setEditGiftRow(null); }} />}
       {deleteBreadId && <ConfirmDeleteBreadModal bread={data.breadTypes.find((b) => b.id === deleteBreadId)} onClose={() => setDeleteBreadId(null)} onConfirm={confirmDeleteBreadType} />}
