@@ -616,6 +616,10 @@ function BreadGiftingTrackerWebApp() {
   function personById(id) {
     return data.people.find((p) => p.id === id && p.active !== false);
   } // end of personById()
+
+  function personByIdAny(id) {
+    return data.people.find((p) => p.id === id);
+  } // end of personByIdAny()
   //
   // end of 1.2.6 addition
   //
