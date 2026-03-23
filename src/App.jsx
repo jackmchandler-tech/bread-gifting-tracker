@@ -394,7 +394,7 @@ function PersonDetailModal({
   return (
     <Modal title={person.name} onClose={onClose}>
       <div className="space-y-4">
-        <SectionCard
+      <SectionCard
           title="Details"
           action={
             <AppButton onClick={onEditPerson} variant="secondary">
@@ -407,16 +407,19 @@ function PersonDetailModal({
               <span className="font-medium">Associated:</span> {person.associatedName}
             </div>
           )}
+        
           {!!person.howMet && (
             <div className="text-sm">
               <span className="font-medium">How met:</span> {person.howMet}
             </div>
           )}
+        
           {!!person.note && (
             <div className="text-sm">
               <span className="font-medium">Note:</span> {person.note}
             </div>
           )}
+        
           {!!person.phone && (
             <div className="text-sm flex items-center gap-2">
               <Phone className="w-4 h-4" />
@@ -438,8 +441,6 @@ function PersonDetailModal({
             </AppButton>
           </div>
         </SectionCard>
-        //)} // JMC Commented out because they are showing up in the dialog
-
         <SectionCard title="Gift History">
           <div className="space-y-3">
             {gifts.map((gift) => (
