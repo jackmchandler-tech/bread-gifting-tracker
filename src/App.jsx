@@ -285,9 +285,7 @@ function SetupScreen({ settings, onSave, savedPulse, data, onRestore }) {
           <div><span className="font-medium">Feedback:</span> {form.enableFeedback ? "On" : "Hidden"}</div>
         </div>
       </SectionCard>
-      //
-      // Added for 1.2.6
-      //
+      
       <SectionCard title="Inactive People">
         <div className="space-y-2">
           {data.people.filter((p) => p.active === false).map((p) => (
@@ -308,8 +306,8 @@ function SetupScreen({ settings, onSave, savedPulse, data, onRestore }) {
           {!data.people.some((p) => p.active === false) && (
             <div className="text-sm text-gray-500">No inactive people.</div>
           )}
-  </div>
-</SectionCard>
+        </div>
+      </SectionCard>
     </div>
   );
 }
@@ -717,11 +715,11 @@ function BreadGiftingTrackerWebApp() {
         : d.memberships,
     }));
 } // end of addPerson()
-/* ================================================================================
- * deactivatePerson()
- * Hides the passed in user id. No data is deleted only the active flag is modified
- * ================================================================================
-*/
+/* ======================================================================================
+ * deactivatePerson()/ reactivatePerson()
+ * Hides/shows the passed in user id. No data is deleted only the active flag is modified
+ * ======================================================================================
+
 function deactivatePerson(personId) {
   setData((d) => ({
     ...d,
@@ -730,7 +728,16 @@ function deactivatePerson(personId) {
     ),
   }));
 } // end of deactivatePerson()
-  
+
+function reactivatePerson(personId) {
+  setData((d) => ({
+    ...d,
+    people: d.people.map((p) =>
+      p.id === personId ? { ...p, active: true } : p
+    ),
+  }));
+} // end of reactivatePerson()
+*/  
   function resetListCycle(listId) { setData((d) => ({ ...d, memberships: d.memberships.map((m) => (m.listId === listId ? { ...m, giftedThisCycle: false } : m)) })); }
   function updateLatestGiftFeedback(personId, feedback, rating) {
     const latest = giftsForPerson(personId)[0]; if (!latest) return;
