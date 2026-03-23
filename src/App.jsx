@@ -438,7 +438,7 @@ function PersonDetailModal({
             </AppButton>
           </div>
         </SectionCard>
-        )}
+        //)} // JMC Commented out because they are showing up in the dialog
 
         <SectionCard title="Gift History">
           <div className="space-y-3">
