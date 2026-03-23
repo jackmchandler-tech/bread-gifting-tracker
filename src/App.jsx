@@ -867,18 +867,41 @@ function BreadGiftingTrackerWebApp() {
 
   reader.readAsText(file);
 }
+  // ----------------------- Here is the new troubleshooting section for 1.2.6
+  const allPeopleRows = useMemo(() => {
+    return data.people
+      .filter((p) => p.active !== false)
+      .filter((p) => {
+        const q = search.trim().toLowerCase();
+        return !q || p.name.toLowerCase().includes(q) || p.associatedName.toLowerCase().includes(q);
+      })
+      .map((person) => ({
+        person,
+        neverGifted: !lastGiftAnywhere(person.id),
+        lastAnywhere: lastGiftAnywhere(person.id),
+        totalGifts: data.gifts.filter((g) => g.personId === person.id).length,
+      }))
+      .sort((a, b) => {
+        if (a.neverGifted !== b.neverGifted) return a.neverGifted ? -1 : 1;
+        const ad = a.lastAnywhere?.date || "9999-12-31";
+        const bd = b.lastAnywhere?.date || "9999-12-31";
+        if (ad !== bd) return ad.localeCompare(bd);
+        return a.person.name.localeCompare(b.person.name);
+      });
+  }, [data.people, data.gifts, search]); // end of allPeopleRows useMemo()
 
+  // -----------------------
   //const allPeopleRows = useMemo(() => data.people.filter((p) => !p.archived).filter((p) => {
-  const allPeopleRows = useMemo() => data.people.filter((p) => p.active !== false) => { // p1.2.6
-    const q = search.trim().toLowerCase();
-    return !q || p.name.toLowerCase().includes(q) || p.associatedName.toLowerCase().includes(q);
-  }).map((person) => ({ person, neverGifted: !lastGiftAnywhere(person.id), lastAnywhere: lastGiftAnywhere(person.id), totalGifts: data.gifts.filter((g) => g.personId === person.id).length }))
-  .sort((a, b) => {
-    if (a.neverGifted !== b.neverGifted) return a.neverGifted ? -1 : 1;
-    const ad = a.lastAnywhere?.date || "9999-12-31", bd = b.lastAnywhere?.date || "9999-12-31";
-    if (ad !== bd) return ad.localeCompare(bd);
-    return a.person.name.localeCompare(b.person.name);
-  }), [data.people, data.gifts, search]);
+  //const allPeopleRows = useMemo() => data.people.filter((p) => p.active !== false) => { // p1.2.6
+    //const q = search.trim().toLowerCase();
+  //  return !q || p.name.toLowerCase().includes(q) || p.associatedName.toLowerCase().includes(q);
+//  }).map((person) => ({ person, neverGifted: !lastGiftAnywhere(person.id), lastAnywhere: lastGiftAnywhere(person.id), totalGifts: data.gifts.filter((g) => g.personId === person.id).length }))
+//  .sort((a, b) => {
+//    if (a.neverGifted !== b.neverGifted) return a.neverGifted ? -1 : 1;
+//    const ad = a.lastAnywhere?.date || "9999-12-31", bd = b.lastAnywhere?.date || "9999-12-31";
+//    if (ad !== bd) return ad.localeCompare(bd);
+ //   return a.person.name.localeCompare(b.person.name);
+//  }), [data.people, data.gifts, search]);
 
   const activeListRows = useMemo(() => {
     if (!activeListId) return [];
