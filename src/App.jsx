@@ -340,7 +340,6 @@ function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
   const [search, setSearch] = useState("");
   const alreadyInList = new Set(memberships.filter((m) => m.listId === list.id).map((m) => m.personId));
   const options = people
-    //1.2.6.filter((p) => !p.archived && !alreadyInList.has(p.id))
     .filter((p) => p.active !==false && !alreadyInList.has(p.id))
     .filter((p) => {
       const q = search.trim().toLowerCase();
@@ -751,7 +750,8 @@ function reactivatePerson(personId) {
   function exportBackup() { downloadTextFile(`giving-tracker-backup-${todayInputValue()}.json`, JSON.stringify(data, null, 2), "application/json;charset=utf-8"); }
   function exportPeopleCsv() {
     const rows = [];
-    const activePeople = data.people.filter((p) => !p.archived);
+    //const activePeople = data.people.filter((p) => !p.archived);
+    const activePeople = data.people.filter((p) => p.active !== false);
   
     for (const person of activePeople) {
       const personMemberships = data.memberships.filter((m) => m.personId === person.id);
@@ -913,18 +913,6 @@ function reactivatePerson(personId) {
       });
   }, [data.people, data.gifts, search]); // end of allPeopleRows useMemo()
 
-  // -----------------------
-  //const allPeopleRows = useMemo(() => data.people.filter((p) => !p.archived).filter((p) => {
-  //const allPeopleRows = useMemo() => data.people.filter((p) => p.active !== false) => { // p1.2.6
-    //const q = search.trim().toLowerCase();
-  //  return !q || p.name.toLowerCase().includes(q) || p.associatedName.toLowerCase().includes(q);
-//  }).map((person) => ({ person, neverGifted: !lastGiftAnywhere(person.id), lastAnywhere: lastGiftAnywhere(person.id), totalGifts: data.gifts.filter((g) => g.personId === person.id).length }))
-//  .sort((a, b) => {
-//    if (a.neverGifted !== b.neverGifted) return a.neverGifted ? -1 : 1;
-//    const ad = a.lastAnywhere?.date || "9999-12-31", bd = b.lastAnywhere?.date || "9999-12-31";
-//    if (ad !== bd) return ad.localeCompare(bd);
- //   return a.person.name.localeCompare(b.person.name);
-//  }), [data.people, data.gifts, search]);
 
   const activeListRows = useMemo(() => {
     if (!activeListId) return [];
