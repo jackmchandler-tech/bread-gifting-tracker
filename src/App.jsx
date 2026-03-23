@@ -124,7 +124,6 @@ function PersonRow({ row, mode, itemSingular, itemPlural, onGift, onOpen, onTogg
 //
 // added for 1.2.6
 //
-/*
 function deactivatePerson(personId) {
   setData((d) => ({
     ...d,
@@ -133,7 +132,6 @@ function deactivatePerson(personId) {
     ),
   }));
 } // end of deactivatePerson()
-*/
 
 function restorePerson(personId) {
   setData((d) => ({
