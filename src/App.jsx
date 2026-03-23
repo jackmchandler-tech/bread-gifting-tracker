@@ -124,6 +124,7 @@ function PersonRow({ row, mode, itemSingular, itemPlural, onGift, onOpen, onTogg
 //
 // added for 1.2.6
 //
+/*
 function deactivatePerson(personId) {
   setData((d) => ({
     ...d,
@@ -132,6 +133,7 @@ function deactivatePerson(personId) {
     ),
   }));
 } // end of deactivatePerson()
+*/
 
 function restorePerson(personId) {
   setData((d) => ({
@@ -719,6 +721,7 @@ function BreadGiftingTrackerWebApp() {
  * deactivatePerson()/ reactivatePerson()
  * Hides/shows the passed in user id. No data is deleted only the active flag is modified
  * ======================================================================================
+*/
 
 function deactivatePerson(personId) {
   setData((d) => ({
@@ -737,7 +740,7 @@ function reactivatePerson(personId) {
     ),
   }));
 } // end of reactivatePerson()
-*/  
+
   function resetListCycle(listId) { setData((d) => ({ ...d, memberships: d.memberships.map((m) => (m.listId === listId ? { ...m, giftedThisCycle: false } : m)) })); }
   function updateLatestGiftFeedback(personId, feedback, rating) {
     const latest = giftsForPerson(personId)[0]; if (!latest) return;
