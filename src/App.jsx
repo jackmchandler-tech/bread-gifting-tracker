@@ -297,9 +297,19 @@ function SetupScreen({ settings, onSave, savedPulse, data, onRestore }) {
                 <div className="font-medium">{p.name}</div>
                 <div className="text-xs text-gray-500">{p.associatedName || ""}</div>
               </div>
+              <AppButton
+                onClick={() => {
+                  console.log("Restore clicked for", p.id);
+                  onRestore(p.id);
+                }}
+              >
+                Restore
+              </AppButton>
+              /*
               <AppButton onClick={() => onRestore(p.id)}>
                 Restore
               </AppButton>
+              */
             </div>
           ))}
       
