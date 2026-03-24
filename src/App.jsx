@@ -134,6 +134,17 @@ function deactivatePerson(personId) {
 } // end of deactivatePerson()
 
 function restorePerson(personId) {
+  console.log("restorePerson called with", personId);
+
+  setData((d) => ({
+    ...d,
+    people: d.people.map((p) =>
+      p.id === personId ? { ...p, active: true } : p
+    ),
+  }));
+} // end of restorePerson()
+
+function restorePerson_orig(personId) {
   setData((d) => ({
     ...d,
     people: d.people.map((p) =>
