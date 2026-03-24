@@ -277,17 +277,12 @@ function SetupScreen({ settings, onSave, savedPulse, data, onRestore }) {
               </div>
               <AppButton
                 onClick={() => {
-                  console.log("Restore clicked for", p.id);
+                  //console.log("Restore clicked for", p.id);
                   onRestore(p.id);
                 }}
               >
                 Restore
               </AppButton>
-              /*
-              <AppButton onClick={() => onRestore(p.id)}>
-                Restore
-              </AppButton>
-              */
             </div>
           ))}
       
@@ -608,40 +603,33 @@ function BreadGiftingTrackerWebApp() {
   function personByIdAny(id) {
     return data.people.find((p) => p.id === id);
   } // end of personByIdAny()
- //
-    // added for 1.2.6
-    //
-    function deactivatePerson(personId) {
-      setData((d) => ({
-        ...d,
-        people: d.people.map((p) =>
-          p.id === personId ? { ...p, active: false } : p
-        ),
-      }));
-    } // end of deactivatePerson()
+ 
+  //---------------------------------------------------------------------------
+  // added for 1.2.6
+  //
+  function deactivatePerson(personId) {
+    setData((d) => ({
+      ...d,
+      people: d.people.map((p) =>
+        p.id === personId ? { ...p, active: false } : p
+      ),
+    }));
+   } // end of deactivatePerson()
     
-    function restorePerson(personId) {
-      console.log("restorePerson called with", personId);
+  function restorePerson(personId) {
+     // console.log("restorePerson called with", personId);
     
-      setData((d) => ({
-        ...d,
-        people: d.people.map((p) =>
-          p.id === personId ? { ...p, active: true } : p
-        ),
-      }));
-    } // end of restorePerson()
-    
-    function restorePerson_orig(personId) {
       setData((d) => ({
         ...d,
         people: d.people.map((p) =>
           p.id === personId ? { ...p, active: true } : p
         ),
       }));
-    } // end of restorePerson()
-    //
-    // end of 1.2.6 addition
-    //
+  } // end of restorePerson()
+    
+  //
+  // end of 1.2.6 addition
+  // ------------------------------------------------------------------------
   
   function giftsForPerson(id) { return data.gifts.filter((g) => g.personId === id).sort((a, b) => b.date.localeCompare(a.date)); }
   function lastGiftAnywhere(personId) { return giftsForPerson(personId)[0] || null; }
@@ -1118,4 +1106,4 @@ function reactivatePerson(personId) {
       {renameGroupId && <RenameGroupModal group={data.lists.find((list) => list.id === renameGroupId)} onClose={() => setRenameGroupId(null)} onSave={(name) => { renameList(renameGroupId, name); setRenameGroupId(null); }} />}
     </div>
   );
-}
+} // end of BreadGiftingTrackerWebApp()
