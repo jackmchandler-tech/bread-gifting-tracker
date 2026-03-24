@@ -16,8 +16,11 @@ export function normalizeData(raw) {
   };
 }
 export function defaultData() {
-  // start with no seed data
   return {
+    appSettings: {
+      ...DEFAULT_APP_SETTINGS,
+    },
+    breadTypes: [],
     people: [],
     lists: [],
     memberships: [],
