@@ -121,40 +121,7 @@ function PersonRow({ row, mode, itemSingular, itemPlural, onGift, onOpen, onTogg
     </div>
   );
 }
-//
-// added for 1.2.6
-//
-function deactivatePerson(personId) {
-  setData((d) => ({
-    ...d,
-    people: d.people.map((p) =>
-      p.id === personId ? { ...p, active: false } : p
-    ),
-  }));
-} // end of deactivatePerson()
 
-function restorePerson(personId) {
-  console.log("restorePerson called with", personId);
-
-  setData((d) => ({
-    ...d,
-    people: d.people.map((p) =>
-      p.id === personId ? { ...p, active: true } : p
-    ),
-  }));
-} // end of restorePerson()
-
-function restorePerson_orig(personId) {
-  setData((d) => ({
-    ...d,
-    people: d.people.map((p) =>
-      p.id === personId ? { ...p, active: true } : p
-    ),
-  }));
-} // end of restorePerson()
-//
-// end of 1.2.6 addition
-//
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-3">
@@ -641,9 +608,41 @@ function BreadGiftingTrackerWebApp() {
   function personByIdAny(id) {
     return data.people.find((p) => p.id === id);
   } // end of personByIdAny()
-  //
-  // end of 1.2.6 addition
-  //
+ //
+    // added for 1.2.6
+    //
+    function deactivatePerson(personId) {
+      setData((d) => ({
+        ...d,
+        people: d.people.map((p) =>
+          p.id === personId ? { ...p, active: false } : p
+        ),
+      }));
+    } // end of deactivatePerson()
+    
+    function restorePerson(personId) {
+      console.log("restorePerson called with", personId);
+    
+      setData((d) => ({
+        ...d,
+        people: d.people.map((p) =>
+          p.id === personId ? { ...p, active: true } : p
+        ),
+      }));
+    } // end of restorePerson()
+    
+    function restorePerson_orig(personId) {
+      setData((d) => ({
+        ...d,
+        people: d.people.map((p) =>
+          p.id === personId ? { ...p, active: true } : p
+        ),
+      }));
+    } // end of restorePerson()
+    //
+    // end of 1.2.6 addition
+    //
+  
   function giftsForPerson(id) { return data.gifts.filter((g) => g.personId === id).sort((a, b) => b.date.localeCompare(a.date)); }
   function lastGiftAnywhere(personId) { return giftsForPerson(personId)[0] || null; }
   function lastGiftOnList(personId, listId) { return data.gifts.filter((g) => g.personId === personId && g.listId === listId).sort((a, b) => b.date.localeCompare(a.date))[0] || null; }
