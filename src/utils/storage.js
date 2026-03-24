@@ -17,14 +17,6 @@ export function normalizeData(raw) {
 }
 
 export function defaultData() {
-  return {
-    people: [],
-    lists: [],
-    memberships: [],
-    gifts: [],
-  };
-} // end of defaultData()
-/*
   const fishList = "list_fish";
   const neighborsList = "list_neighbors";
   const p1 = "p_joe";
@@ -72,7 +64,7 @@ export function defaultData() {
     ],
   });
 }
-*/
+
 export function loadData(storageKey) {
   try {
     const raw = localStorage.getItem(storageKey);
