@@ -1,4 +1,13 @@
-
+v1.2.6
+  - Replaced Delete Person with Deactivate Person (non-destructive).
+  - Added active flag to people to control visibility instead of using archived.
+  - Inactive people are hidden from all normal views (All People, groups, Add Existing).
+  - Added Restore Person capability in Setup under "Inactive People".
+  - Restored people return to all prior groups and history.
+  - CSV import now restores inactive people automatically when matching records are found.
+  - Normalized filtering logic to use active !== false for visibility.
+  - Fixed Add Person save bug by restoring missing addPerson() function.
+  - Removed seed data
 v1.2.5
   - Replaced gift-history CSV export with Export People CSV.
   - Aligned CSV export and import to use the same people-focused structure.
