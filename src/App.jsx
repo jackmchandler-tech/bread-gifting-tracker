@@ -29,7 +29,9 @@ const Trash2 = ({ className = "w-5 h-5" }) => <Icon className={className}>🗑</
 const X = ({ className = "w-5 h-5" }) => <Icon className={className}>✕</Icon>;
 const SettingsIcon = ({ className = "w-5 h-5" }) => <Icon className={className}>⚙</Icon>;
 
-
+/* ==============================================================================
+ * Helper functions
+*/
 
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -553,7 +555,11 @@ export default function AppWrapper() {
   return <App />;
 }
 
-
+/*
+ * ============================================================================
+ * Main routine. This is where the logic takes place
+ * ============================================================================
+*/
 function BreadGiftingTrackerWebApp() {
   const [data, setData] = useState(defaultData);
   const [tab, setTab] = useState("home");
@@ -573,7 +579,7 @@ function BreadGiftingTrackerWebApp() {
   const [setupSavedPulse, setSetupSavedPulse] = useState(false);
   const backupInputRef = useRef(null);
   const peopleCsvInputRef = useRef(null);
-
+  
   useEffect(() => { setData(loadData(STORAGE_KEY)); }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }, [data]);
   useEffect(() => {
@@ -587,23 +593,23 @@ function BreadGiftingTrackerWebApp() {
     const t = setTimeout(() => setSetupSavedPulse(false), 1800);
     return () => clearTimeout(t);
   }, [setupSavedPulse]);
-
+  
   const settings = data.appSettings || DEFAULT_APP_SETTINGS;
   const itemSingular = settings.itemSingular || "gift";
   const itemPlural = settings.itemPlural || "gifts";
   const currentBread = useMemo(() => data.breadTypes.find((b) => b.isCurrent) || data.breadTypes[0], [data.breadTypes]);
   const activeList = useMemo(() => data.lists.find((l) => l.id === activeListId) || null, [data.lists, activeListId]);
   const quickAccessList = useMemo(() => data.lists.find((l) => l.id === (lastOpenedListId || activeListId)) || data.lists[0] || null, [data.lists, lastOpenedListId, activeListId]);
-
+  
   // modified 1.2.6 function personById(id) { return data.people.find((p) => p.id === id); }
   function personById(id) {
     return data.people.find((p) => p.id === id && p.active !== false);
   } // end of personById()
-
+  
   function personByIdAny(id) {
     return data.people.find((p) => p.id === id);
   } // end of personByIdAny()
- 
+  
   //---------------------------------------------------------------------------
   // added for 1.2.6
   //
@@ -611,22 +617,22 @@ function BreadGiftingTrackerWebApp() {
     setData((d) => ({
       ...d,
       people: d.people.map((p) =>
-        p.id === personId ? { ...p, active: false } : p
+      p.id === personId ? { ...p, active: false } : p
       ),
     }));
-   } // end of deactivatePerson()
-    
+  } // end of deactivatePerson()
+  
   function restorePerson(personId) {
-     // console.log("restorePerson called with", personId);
+    // console.log("restorePerson called with", personId);
     
-      setData((d) => ({
-        ...d,
-        people: d.people.map((p) =>
-          p.id === personId ? { ...p, active: true } : p
-        ),
-      }));
+    setData((d) => ({
+      ...d,
+      people: d.people.map((p) =>
+      p.id === personId ? { ...p, active: true } : p
+      ),
+    }));
   } // end of restorePerson()
-    
+  
   //
   // end of 1.2.6 addition
   // ------------------------------------------------------------------------
@@ -635,69 +641,78 @@ function BreadGiftingTrackerWebApp() {
   function lastGiftAnywhere(personId) { return giftsForPerson(personId)[0] || null; }
   function lastGiftOnList(personId, listId) { return data.gifts.filter((g) => g.personId === personId && g.listId === listId).sort((a, b) => b.date.localeCompare(a.date))[0] || null; }
   function setCurrentBread(id) { setData((d) => ({ ...d, breadTypes: d.breadTypes.map((b) => ({ ...b, isCurrent: b.id === id })) })); }
+  
   function addBreadType(name) {
     const trimmed = name.trim(); if (!trimmed) return;
     setData((d) => ({ ...d, breadTypes: [...d.breadTypes, { id: uid(), name: trimmed, isCurrent: d.breadTypes.length === 0 }] }));
-  }
+  } // end of addBreadType()
+  
   function removeBreadType(id) {
     setData((d) => {
-      const removed = d.breadTypes.find((b) => b.id === id);
-      const next = d.breadTypes.filter((b) => b.id !== id);
-      if (removed?.isCurrent && next[0]) next[0].isCurrent = true;
-      return { ...d, breadTypes: next };
+    const removed = d.breadTypes.find((b) => b.id === id);
+    const next = d.breadTypes.filter((b) => b.id !== id);
+    if (removed?.isCurrent && next[0]) next[0].isCurrent = true;
+    return { ...d, breadTypes: next };
     });
-  }
+  } // end of removeBreadType()
+  
   function addList(name) {
     const trimmed = name.trim(); if (!trimmed) return;
     setData((d) => ({ ...d, lists: [...d.lists, { id: uid(), name: trimmed }] }));
-  }
+  } // end of addList()
+  
   function renameList(listId, name) {
     const trimmed = name.trim(); if (!trimmed) return;
     setData((d) => ({ ...d, lists: d.lists.map((list) => (list.id === listId ? { ...list, name: trimmed } : list)) }));
-  }
+  } // end of renameList()
+  
   function updateAppSettings(updates) {
-  setData((d) => ({
+    setData((d) => ({
     ...d,
     appSettings: { ...DEFAULT_APP_SETTINGS, ...(d.appSettings || {}), ...updates },
-  }));
-  setSetupSavedPulse(true);
-}
+    }));
+    setSetupSavedPulse(true);
+  } // end of updateAppSettings()
+  
   function addExistingPersonToList(personId, listId) {
     setData((d) => {
-      if (d.memberships.some((m) => m.personId === personId && m.listId === listId)) return d;
-      return { ...d, memberships: [...d.memberships, { id: uid(), personId, listId, giftedThisCycle: false, isNewToList: true }] };
+    if (d.memberships.some((m) => m.personId === personId && m.listId === listId)) return d;
+    return { ...d, memberships: [...d.memberships, { id: uid(), personId, listId, giftedThisCycle: false, isNewToList: true }] };
     });
-  }
+  } // end of addExistingPersonToList()
+  
   function recordGift(personId, listId = null, overrideDate = null) {
     const gift = { id: uid(), personId, listId, breadTypeName: currentBread?.name || itemSingular, date: overrideDate || todayInputValue(), feedback: "", rating: null };
     setData((d) => ({
-      ...d,
-      gifts: [...d.gifts, gift],
-      memberships: d.memberships.map((m) => m.personId === personId && m.listId === listId ? { ...m, giftedThisCycle: true, isNewToList: false } : m),
+    ...d,
+    gifts: [...d.gifts, gift],
+    memberships: d.memberships.map((m) => m.personId === personId && m.listId === listId ? { ...m, giftedThisCycle: true, isNewToList: false } : m),
     }));
     setUndoGift(gift);
-  }
+  } // end of recordGift()
+  
   function undoLastGift() {
-    if (!undoGift) return;
+  if (!undoGift) return;
     const priorGiftOnList = undoGift.listId ? data.gifts.filter((g) => g.id !== undoGift.id && g.personId === undoGift.personId && g.listId === undoGift.listId).sort((a, b) => b.date.localeCompare(a.date))[0] : null;
     setData((d) => ({
       ...d,
       gifts: d.gifts.filter((g) => g.id !== undoGift.id),
       memberships: d.memberships.map((m) => {
-        if (m.personId === undoGift.personId && m.listId === undoGift.listId) {
-          return { ...m, giftedThisCycle: !!priorGiftOnList, isNewToList: priorGiftOnList ? false : m.isNewToList };
-        }
-        return m;
-      }),
+      if (m.personId === undoGift.personId && m.listId === undoGift.listId) {
+      return { ...m, giftedThisCycle: !!priorGiftOnList, isNewToList: priorGiftOnList ? false : m.isNewToList };
+      }
+      return m;
+    }),
     }));
     setUndoGift(null);
-  }
+  } // end of undoLastGift()
+  
   function addPerson(form, listId = null) {
     const trimmed = form.name.trim();
     if (!trimmed) return;
-  
+    
     const personId = uid();
-  
+    
     setData((d) => ({
       ...d,
       people: [
@@ -713,61 +728,63 @@ function BreadGiftingTrackerWebApp() {
         },
       ],
       memberships: listId
-        ? [
-            ...d.memberships,
-            {
-              id: uid(),
-              personId,
-              listId,
-              giftedThisCycle: false,
-              isNewToList: true,
-            },
-          ]
-        : d.memberships,
+      ? [
+      ...d.memberships,
+        {
+        id: uid(),
+        personId,
+        listId,
+        giftedThisCycle: false,
+        isNewToList: true,
+        },
+      ]
+      : d.memberships,
     }));
-} // end of addPerson()
-/* ======================================================================================
- * deactivatePerson()/ reactivatePerson()
- * Hides/shows the passed in user id. No data is deleted only the active flag is modified
- * ======================================================================================
-*/
-
-function deactivatePerson(personId) {
-  setData((d) => ({
-    ...d,
-    people: d.people.map((p) =>
-      p.id === personId ? { ...p, active: false } : p
-    ),
-  }));
-} // end of deactivatePerson()
-
-function reactivatePerson(personId) {
-  setData((d) => ({
-    ...d,
-    people: d.people.map((p) =>
-      p.id === personId ? { ...p, active: true } : p
-    ),
-  }));
-} // end of reactivatePerson()
-
+  } // end of addPerson()
+  
+  /* ======================================================================================
+  * deactivatePerson()/ reactivatePerson()
+  * Hides/shows the passed in user id. No data is deleted only the active flag is modified
+  * ======================================================================================
+  */  
+  function deactivatePerson(personId) {
+    setData((d) => ({
+      ...d,
+      people: d.people.map((p) =>
+        p.id === personId ? { ...p, active: false } : p
+      ),
+    }));
+  } // end of deactivatePerson()
+  
+  function reactivatePerson(personId) {
+    setData((d) => ({
+      ...d,
+      people: d.people.map((p) =>
+        p.id === personId ? { ...p, active: true } : p
+      ),
+    }));
+  } // end of reactivatePerson()
+  
   function resetListCycle(listId) { setData((d) => ({ ...d, memberships: d.memberships.map((m) => (m.listId === listId ? { ...m, giftedThisCycle: false } : m)) })); }
+  
   function updateLatestGiftFeedback(personId, feedback, rating) {
     const latest = giftsForPerson(personId)[0]; if (!latest) return;
     setData((d) => ({ ...d, gifts: d.gifts.map((g) => (g.id === latest.id ? { ...g, feedback, rating: rating || null } : g)) }));
-  }
+  } // end of updatelatestGiftFeedback()
+  
   function updateGiftFeedback(giftId, feedback, rating) { setData((d) => ({ ...d, gifts: d.gifts.map((g) => (g.id === giftId ? { ...g, feedback, rating: rating || null } : g)) })); }
   function updatePerson(personId, updates) { setData((d) => ({ ...d, people: d.people.map((p) => (p.id === personId ? { ...p, ...updates } : p)) })); }
   function updateGiftDate(giftId, date) { setData((d) => ({ ...d, gifts: d.gifts.map((g) => (g.id === giftId ? { ...g, date } : g)) })); setUndoGift((g) => (g && g.id === giftId ? { ...g, date } : g)); }
   function confirmDeleteBreadType() { if (!deleteBreadId) return; removeBreadType(deleteBreadId); setDeleteBreadId(null); }
   function exportBackup() { downloadTextFile(`giving-tracker-backup-${todayInputValue()}.json`, JSON.stringify(data, null, 2), "application/json;charset=utf-8"); }
+  
   function exportPeopleCsv() {
     const rows = [];
-    //const activePeople = data.people.filter((p) => !p.archived);
     const activePeople = data.people.filter((p) => p.active !== false);
-  
+    
     for (const person of activePeople) {
       const personMemberships = data.memberships.filter((m) => m.personId === person.id);
-  
+      
       if (!personMemberships.length) {
         rows.push({
           name: person.name || "",
@@ -778,8 +795,8 @@ function reactivatePerson(personId) {
           groupName: "",
         });
         continue;
-      }
-  
+      }  
+    
       for (const membership of personMemberships) {
         const group = data.lists.find((l) => l.id === membership.listId);
         rows.push({
@@ -791,14 +808,14 @@ function reactivatePerson(personId) {
           groupName: group?.name || "",
         });
       }
-    }
-  
+    } // end of for const person of activePeople
     downloadTextFile(
       `people-export-${todayInputValue()}.csv`,
       buildCsv(rows, ["name", "associatedName", "howMet", "note", "phone", "groupName"]),
       "text/csv;charset=utf-8"
     );
-  }
+  } // end of exportPeopleCSV()
+  
   function importBackupFile(file) {
     if (!file) return;
     const reader = new FileReader();
@@ -807,73 +824,72 @@ function reactivatePerson(personId) {
       catch { alert("That backup file could not be read."); }
     };
     reader.readAsText(file);
-  }
+  } // end of importBackupFile()
+  
   function importPeopleCsvFile(file) {
-  if (!file) return;
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    try {
-      const rows = parseCsv(String(reader.result || ""));
-      if (!rows.length) {
-        alert("The CSV did not contain any rows.");
-        return;
-      }
-
-      setData((d) => {
-        const nextPeople = [...d.people];
-        const nextLists = [...d.lists];
-        const nextMemberships = [...d.memberships];
-
-        for (const row of rows) {
-          const name = (row.name || row.Name || row.personName || row.PersonName || "").trim();
-          if (!name) continue;
-
-          const associatedName = (row.associatedName || row.AssociatedName || row.associated || row.Associated || "").trim();
-          const howMet = (row.howMet || row.HowMet || row.met || "").trim();
-          const note = (row.note || row.Note || row.position || row.Position || "").trim();
-          const phone = (row.phone || row.Phone || row.phoneNumber || row.PhoneNumber || "").trim();
-          const groupName = (row.groupName || row.GroupName || row.listName || row.ListName || row.group || row.Group || row.list || row.List || "").trim();
-
-          let person = nextPeople.find(
-            (p) =>
+    if (!file) return;
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      try {
+        const rows = parseCsv(String(reader.result || ""));
+        if (!rows.length) {
+          alert("The CSV did not contain any rows.");
+          return;
+        }
+        
+        setData((d) => {
+          const nextPeople = [...d.people];
+          const nextLists = [...d.lists];
+          const nextMemberships = [...d.memberships];
+          
+          for (const row of rows) {
+            const name = (row.name || row.Name || row.personName || row.PersonName || "").trim();
+            if (!name) continue;
+            
+            const associatedName = (row.associatedName || row.AssociatedName || row.associated || row.Associated || "").trim();
+            const howMet = (row.howMet || row.HowMet || row.met || "").trim();
+            const note = (row.note || row.Note || row.position || row.Position || "").trim();
+            const phone = (row.phone || row.Phone || row.phoneNumber || row.PhoneNumber || "").trim();
+            const groupName = (row.groupName || row.GroupName || row.listName || row.ListName || row.group || row.Group || row.list || row.List || "").trim();
+            
+            let person = nextPeople.find(
+              (p) =>
               (p.name || "").toLowerCase() === name.toLowerCase() &&
               (p.associatedName || "").toLowerCase() === associatedName.toLowerCase()
-          );
-
-          if (!person) {
-            person = {
-              id: uid(),
-              name,
-              associatedName,
-              howMet,
-              note,
-              phone,
-              // JMC found archived: false,
-              active: true,
-            };
-            nextPeople.push(person);
-            // JMC added closing parens before the else
-          } else {
-            person.name = name || person.name;
-            person.associatedName = associatedName || person.associatedName;
-            person.howMet = howMet || person.howMet;
-            person.note = note || person.note;
-            person.phone = phone || person.phone;
-            person.active = true;
-          }
-
+            );
+            
+            if (!person) {
+              person = {
+                id: uid(),
+                name,
+                associatedName,
+                howMet,
+                note,
+                phone,
+                active: true,
+              };
+              nextPeople.push(person);
+            } else {
+              person.name = name || person.name;
+              person.associatedName = associatedName || person.associatedName;
+              person.howMet = howMet || person.howMet;
+              person.note = note || person.note;
+              person.phone = phone || person.phone;
+              person.active = true;
+            }
+          
           if (groupName) {
             let group = nextLists.find((l) => (l.name || "").toLowerCase() === groupName.toLowerCase());
             if (!group) {
               group = { id: uid(), name: groupName };
               nextLists.push(group);
             }
-
+            
             const existingMembership = nextMemberships.find(
-              (m) => m.personId === person.id && m.listId === group.id
+            (m) => m.personId === person.id && m.listId === group.id
             );
-
+            
             if (!existingMembership) {
               nextMemberships.push({
                 id: uid(),
@@ -884,8 +900,8 @@ function reactivatePerson(personId) {
               });
             }
           }
-        }
-
+        } // end of for
+        
         return {
           ...d,
           people: nextPeople,
@@ -893,43 +909,44 @@ function reactivatePerson(personId) {
           memberships: nextMemberships,
         };
       });
-
+      
       setTab("people");
-    } catch {
-      alert("That CSV file could not be imported.");
-    }
-  };
-
-  reader.readAsText(file);
-}
+      } catch {
+        alert("That CSV file could not be imported.");
+      }
+    };
+    
+    reader.readAsText(file);
+  } // end of importPeopleCSV()
+  
   // ----------------------- Here is the new troubleshooting section for 1.2.6
   const allPeopleRows = useMemo(() => {
     return data.people
-      .filter((p) => p.active !== false)
-      .filter((p) => {
-        const q = search.trim().toLowerCase();
-        return !q || p.name.toLowerCase().includes(q) || p.associatedName.toLowerCase().includes(q);
-      })
-      .map((person) => ({
-        person,
-        neverGifted: !lastGiftAnywhere(person.id),
-        lastAnywhere: lastGiftAnywhere(person.id),
-        totalGifts: data.gifts.filter((g) => g.personId === person.id).length,
-      }))
-      .sort((a, b) => {
-        if (a.neverGifted !== b.neverGifted) return a.neverGifted ? -1 : 1;
-        const ad = a.lastAnywhere?.date || "9999-12-31";
-        const bd = b.lastAnywhere?.date || "9999-12-31";
-        if (ad !== bd) return ad.localeCompare(bd);
-        return a.person.name.localeCompare(b.person.name);
-      });
+    .filter((p) => p.active !== false)
+    .filter((p) => {
+      const q = search.trim().toLowerCase();
+      return !q || p.name.toLowerCase().includes(q) || p.associatedName.toLowerCase().includes(q);
+    })
+    .map((person) => ({
+      person,
+      neverGifted: !lastGiftAnywhere(person.id),
+      lastAnywhere: lastGiftAnywhere(person.id),
+      totalGifts: data.gifts.filter((g) => g.personId === person.id).length,
+    }))
+    .sort((a, b) => {
+      if (a.neverGifted !== b.neverGifted) return a.neverGifted ? -1 : 1;
+      const ad = a.lastAnywhere?.date || "9999-12-31";
+      const bd = b.lastAnywhere?.date || "9999-12-31";
+      if (ad !== bd) return ad.localeCompare(bd);
+      return a.person.name.localeCompare(b.person.name);
+    });
   }, [data.people, data.gifts, search]); // end of allPeopleRows useMemo()
-
-
+  
+  
   const activeListRows = useMemo(() => {
     if (!activeListId) return [];
     return data.memberships.filter((m) => m.listId === activeListId).map((m) => {
-      // 1.2.6 const person = personById(m.personId); if (!person || person.archived) return null;
+
       const person = personById(m.personId); if (!person || person.active === false) return null; // 1.2.6
       return { person, checked: m.giftedThisCycle, isNewToList: m.isNewToList, neverGifted: !lastGiftAnywhere(person.id), lastAnywhere: lastGiftAnywhere(person.id), lastOnList: lastGiftOnList(person.id, activeListId) };
     }).filter(Boolean).filter((row) => {
@@ -943,167 +960,172 @@ function reactivatePerson(personId) {
       if (ad !== bd) return ad.localeCompare(bd);
       return a.person.name.localeCompare(b.person.name);
     });
-  }, [activeListId, data.memberships, data.people, data.gifts, search]);
-
-  const neverGiftedCount = allPeopleRows.filter((r) => r.neverGifted).length;
-  const giftsThisWeek = data.gifts.length;
-  const selectedPerson = personModalId ? personById(personModalId) : null;
+  }, [activeListId, data.memberships, data.people, data.gifts, search]); // end of activeListRows useMemo()
+  
+  const neverGiftedCount    = allPeopleRows.filter((r) => r.neverGifted).length;
+  const giftsThisWeek       = data.gifts.length;
+  const selectedPerson      = personModalId ? personById(personModalId) : null;
   const selectedPersonGifts = selectedPerson ? giftsForPerson(selectedPerson.id) : [];
-
+  
   return (
-    <div className="min-h-screen bg-stone-100 text-gray-900">
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 pb-28 space-y-4">
-        <div className="rounded-[28px] bg-white border shadow-sm p-4 flex items-center justify-between gap-4">
-          <div>
-            <div className="flex items-baseline gap-2"><div className="text-2xl font-bold">{settings.title || "Giving Tracker"}</div><span className="text-xs text-gray-400">{APP_VERSION}</span></div>
-            <div className="text-sm text-gray-500">Mobile-first web app prototype with local saving in your browser. After recording a gift, use Edit Date in the banner if it was given in the past.</div>
-          </div>
-          <Badge tone="orange">{currentBread?.name || `No ${itemSingular} selected`}</Badge>
-        </div>
-
-        {tab === "home" && <div className="space-y-4">
-          <SectionCard title="Overview">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-stone-50 border p-4"><div className="text-sm text-gray-500">Never gifted</div><div className="text-2xl font-bold">{neverGiftedCount}</div></div>
-              <div className="rounded-2xl bg-stone-50 border p-4"><div className="text-sm text-gray-500">Gift records</div><div className="text-2xl font-bold">{giftsThisWeek}</div></div>
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Quick Access">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <AppButton className="justify-start text-left" onClick={() => setTab("people")}>All People</AppButton>
-              <AppButton className="justify-start text-left" onClick={() => setTab("lists")} variant="secondary">Groups</AppButton>
-              <AppButton className="justify-start text-left" onClick={() => setTab("bread")} variant="secondary">Gift Types</AppButton>
-              {!!quickAccessList && <AppButton className="justify-start text-left" onClick={() => { setActiveListId(quickAccessList.id); setLastOpenedListId(quickAccessList.id); setSearch(""); setTab("listDetail"); }} variant="secondary">Continue {quickAccessList.name}</AppButton>}
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Data Management">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <AppButton onClick={exportBackup} variant="secondary">Export Backup</AppButton>
-              <AppButton onClick={() => backupInputRef.current?.click()} variant="secondary">Import Backup</AppButton>
-              <AppButton onClick={exportPeopleCsv} variant="secondary">Export People CSV</AppButton>
-              <AppButton onClick={() => peopleCsvInputRef.current?.click()} variant="secondary">Import People CSV</AppButton>
-            </div>
-            <div className="text-sm text-gray-500">Export People CSV to get the correct template. Supported columns are: name, associatedName, howMet, note, phone, groupName.</div>
-            <input ref={backupInputRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => { importBackupFile(e.target.files?.[0]); e.target.value = ""; }} />
-            <input ref={peopleCsvInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { importPeopleCsvFile(e.target.files?.[0]); e.target.value = ""; }} />
-          </SectionCard>
-        </div>}
-
-        {tab === "people" && <div className="space-y-4">
-          <SectionCard title="All People" action={<AppButton onClick={() => setAddPersonContext({ listId: null })}><Plus className="w-4 h-4 inline mr-1" />Add Person</AppButton>}>
-            <div className="rounded-2xl border bg-stone-50 px-3 py-2 flex items-center gap-2">
-              <Search className="w-4 h-4 text-gray-400" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search everyone" className="bg-transparent outline-none w-full" />
-            </div>
-            <div className="space-y-3">
-              {allPeopleRows.map((row) => (
-                <div key={row.person.id} className="flex gap-2 items-stretch">
-                  <div className="flex-1">
-                    <PersonRow row={row} mode="all" itemSingular={itemSingular} itemPlural={itemPlural} onGift={() => recordGift(row.person.id, null)} onOpen={() => setPersonModalId(row.person.id)} onToggleGiftDateEdit={() => { const latest = giftsForPerson(row.person.id)[0]; if (latest) setEditGiftRow(latest); }} />
-                  </div>
-                  <AppButton onClick={() => recordGift(row.person.id, null)} className="self-center whitespace-nowrap">Give</AppButton>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-        </div>}
-
-        {tab === "lists" && <ListsScreen data={data} setActiveListId={setActiveListId} setLastOpenedListId={setLastOpenedListId} setSearch={setSearch} setTab={setTab} addList={addList} onRename={(listId) => setRenameGroupId(listId)} />}
-
-        {tab === "listDetail" && activeList && <div className="space-y-4">
-          <SectionCard title={activeList.name} action={<div className="flex items-center gap-2"><AppButton variant="secondary" onClick={() => setTab("lists")}>Back to Groups</AppButton><AppButton variant="secondary" onClick={() => setRenameGroupId(activeList.id)}>Rename Group</AppButton><Badge tone="orange">{currentBread?.name || itemSingular}</Badge></div>}>
-            <div className="rounded-2xl border bg-stone-50 px-3 py-2 flex items-center gap-2">
-              <Search className="w-4 h-4 text-gray-400" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or associated person" className="bg-transparent outline-none w-full" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <AppButton onClick={() => setAddPersonContext({ listId: activeList.id })}><UserPlus className="w-4 h-4 inline mr-1" />Add Person</AppButton>
-              <AppButton onClick={() => setShowAddExisting(true)} variant="secondary">Add Existing</AppButton>
-              <AppButton onClick={() => resetListCycle(activeList.id)} variant="secondary"><RotateCcw className="w-4 h-4 inline mr-1" />Reset Group Cycle</AppButton>
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Not Yet Gifted This Cycle">
-            <div className="space-y-3">
-              {activeListRows.filter((r) => !r.checked).map((row) => (
-                <PersonRow key={row.person.id} row={row} mode="list" itemSingular={itemSingular} itemPlural={itemPlural} onGift={() => recordGift(row.person.id, activeList.id)} onOpen={() => setPersonModalId(row.person.id)} onToggleGiftDateEdit={() => {}} />
-              ))}
-              {!activeListRows.filter((r) => !r.checked).length && <div className="text-sm text-gray-500">Everyone in this group has been gifted in the current cycle.</div>}
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Already Gifted This Cycle">
-            <div className="space-y-3">
-              {activeListRows.filter((r) => r.checked).map((row) => (
-                <PersonRow key={row.person.id} row={row} mode="list" itemSingular={itemSingular} itemPlural={itemPlural} onGift={() => {}} onOpen={() => setPersonModalId(row.person.id)} onToggleGiftDateEdit={() => setEditGiftRow(row.lastOnList)} />
-              ))}
-              {!activeListRows.filter((r) => r.checked).length && <div className="text-sm text-gray-500">No one checked off yet.</div>}
-            </div>
-          </SectionCard>
-        </div>}
-
-        {tab === "bread" && <BreadManagerScreen breadTypes={data.breadTypes} setCurrentBread={setCurrentBread} requestDeleteBreadType={setDeleteBreadId} openAdd={() => setShowBreadManager(true)} />}
-        {tab === "setup" && (
-          <SetupScreen
-            settings={settings}
-            onSave={updateAppSettings}
-            savedPulse={setupSavedPulse}
-            data={data}
-            onRestore={restorePerson}
-          />
-        )}
-      </div>
-
-      <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t z-40">
-        <div className="max-w-5xl mx-auto grid grid-cols-5 px-2 py-2">
-          {[["home", Home, "Home"], ["people", Users, "People"], ["lists", ListChecks, "Groups"], ["bread", Bread, "Gift Types"], ["setup", SettingsIcon, "Setup"]].map(([key, IconCmp, label]) => (
-            <button key={key} onClick={() => { setTab(key); setSearch(""); }} className={`rounded-2xl py-2 flex flex-col items-center gap-1 text-xs ${tab === key ? "bg-stone-100 font-semibold" : "text-gray-500"}`}>
-              <IconCmp className="w-5 h-5" />
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {undoGift && <div className="fixed left-3 right-3 bottom-24 z-50">
-        <div className="max-w-3xl mx-auto rounded-3xl bg-white shadow-xl border p-4 flex items-center gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold truncate">{itemSingular.charAt(0).toUpperCase() + itemSingular.slice(1)} recorded for {personById(undoGift.personId)?.name}</div>
-            <div className="text-sm text-gray-500">{undoGift.breadTypeName} · {formatDate(undoGift.date)}</div>
-          </div>
-          <div className="flex gap-2">
-            <AppButton onClick={() => setEditGiftRow(undoGift)} variant="secondary">Edit Date</AppButton>
-            <AppButton onClick={undoLastGift} variant="secondary">Undo</AppButton>
-          </div>
-        </div>
-      </div>}
-
-      {addPersonContext && <AddPersonModal list={data.lists.find((l) => l.id === addPersonContext.listId) || null} onClose={() => setAddPersonContext(null)} onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }} />}
-      {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
-      //1.2.6{selectedPerson && <PersonDetailModal person={selectedPerson} gifts={selectedPersonGifts} lists={data.lists} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setPersonModalId(null)} onEditPerson={() => setEditPersonId(selectedPerson.id)} onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating)} />}
-      {selectedPerson && (
-        <PersonDetailModal person={selectedPerson} 
-          gifts={selectedPersonGifts} 
-          lists={data.lists} 
-          memberships={data.memberships} 
-          enableFeedback={settings.enableFeedback} 
-          enableRatings={settings.enableRatings} 
-          onClose={() => setPersonModalId(null)} 
-          onEditPerson={() => setEditPersonId(selectedPerson.id)} 
-          onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} 
-          onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating) } 
-          onRemoveFromGroup={(groupId) => removePersonFromGroup(selectedPerson.id, groupId)} 
-          onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)} 
-          onDeactivate={deactivatePerson} 
-        />)}
-      {showBreadManager && <AddBreadModal onClose={() => setShowBreadManager(false)} onSave={(name) => { addBreadType(name); setShowBreadManager(false); }} />}
-      {editGiftRow && <EditGiftDateModal gift={editGiftRow} onClose={() => setEditGiftRow(null)} onSave={(date) => { updateGiftDate(editGiftRow.id, date); setEditGiftRow(null); }} />}
-      {deleteBreadId && <ConfirmDeleteBreadModal bread={data.breadTypes.find((b) => b.id === deleteBreadId)} onClose={() => setDeleteBreadId(null)} onConfirm={confirmDeleteBreadType} />}
-      {editPersonId && <EditPersonModal person={personById(editPersonId)} onClose={() => setEditPersonId(null)} onSave={(updates) => { updatePerson(editPersonId, updates); setEditPersonId(null); }} />}
-      {editFeedbackGiftId && <EditGiftFeedbackModal gift={data.gifts.find((g) => g.id === editFeedbackGiftId)} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setEditFeedbackGiftId(null)} onSave={(feedback, rating) => { updateGiftFeedback(editFeedbackGiftId, feedback, rating); setEditFeedbackGiftId(null); }} />}
-      {renameGroupId && <RenameGroupModal group={data.lists.find((list) => list.id === renameGroupId)} onClose={() => setRenameGroupId(null)} onSave={(name) => { renameList(renameGroupId, name); setRenameGroupId(null); }} />}
+  <div className="min-h-screen bg-stone-100 text-gray-900">
+    <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 pb-28 space-y-4">
+      <div className="rounded-[28px] bg-white border shadow-sm p-4 flex items-center justify-between gap-4">
+      <div>
+      <div className="flex items-baseline gap-2"><div className="text-2xl font-bold">{settings.title || "Giving Tracker"}</div><span className="text-xs text-gray-400">{APP_VERSION}</span></div>
+      <div className="text-sm text-gray-500">Mobile-first web app prototype with local saving in your browser. After recording a gift, use Edit Date in the banner if it was given in the past.</div>
     </div>
+    <Badge tone="orange">{currentBread?.name || `No ${itemSingular} selected`}</Badge>
+  </div>
+  
+  {tab === "home" && <div className="space-y-4">
+    <SectionCard title="Overview">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl bg-stone-50 border p-4"><div className="text-sm text-gray-500">Never gifted</div><div className="text-2xl font-bold">{neverGiftedCount}</div></div>
+        <div className="rounded-2xl bg-stone-50 border p-4"><div className="text-sm text-gray-500">Gift records</div><div className="text-2xl font-bold">{giftsThisWeek}</div></div>
+      </div>
+    </SectionCard>
+    
+    <SectionCard title="Quick Access">
+      <div className="grid sm:grid-cols-2 gap-3">
+        <AppButton className="justify-start text-left" onClick={() => setTab("people")}>All People</AppButton>
+        <AppButton className="justify-start text-left" onClick={() => setTab("lists")} variant="secondary">Groups</AppButton>
+        <AppButton className="justify-start text-left" onClick={() => setTab("bread")} variant="secondary">Gift Types</AppButton>
+        {!!quickAccessList && <AppButton className="justify-start text-left" onClick={() => { setActiveListId(quickAccessList.id); setLastOpenedListId(quickAccessList.id); setSearch(""); setTab("listDetail"); }} variant="secondary">Continue {quickAccessList.name}</AppButton>}
+      </div>
+    </SectionCard>
+    
+    <SectionCard title="Data Management">
+      <div className="grid sm:grid-cols-2 gap-3">
+        <AppButton onClick={exportBackup} variant="secondary">Export Backup</AppButton>
+        <AppButton onClick={() => backupInputRef.current?.click()} variant="secondary">Import Backup</AppButton>
+        <AppButton onClick={exportPeopleCsv} variant="secondary">Export People CSV</AppButton>
+        <AppButton onClick={() => peopleCsvInputRef.current?.click()} variant="secondary">Import People CSV</AppButton>
+      </div>
+      <div className="text-sm text-gray-500">Export People CSV to get the correct template. Supported columns are: name, associatedName, howMet, note, phone, groupName.</div>
+      <input ref={backupInputRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => { importBackupFile(e.target.files?.[0]); e.target.value = ""; }} />
+      <input ref={peopleCsvInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { importPeopleCsvFile(e.target.files?.[0]); e.target.value = ""; }} />
+    </SectionCard>
+  </div>}
+  
+  {tab === "people" && <div className="space-y-4">
+    <SectionCard title="All People" action={<AppButton onClick={() => setAddPersonContext({ listId: null })}><Plus className="w-4 h-4 inline mr-1" />Add Person</AppButton>}>
+      <div className="rounded-2xl border bg-stone-50 px-3 py-2 flex items-center gap-2">
+        <Search className="w-4 h-4 text-gray-400" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search everyone" className="bg-transparent outline-none w-full" />
+      </div>
+      <div className="space-y-3">
+        {allPeopleRows.map((row) => (
+          <div key={row.person.id} className="flex gap-2 items-stretch">
+            <div className="flex-1">
+              <PersonRow row={row} mode="all" itemSingular={itemSingular} itemPlural={itemPlural} onGift={() => recordGift(row.person.id, null)} onOpen={() => setPersonModalId(row.person.id)} onToggleGiftDateEdit={() => { const latest = giftsForPerson(row.person.id)[0]; if (latest) setEditGiftRow(latest); }} />
+            </div>
+            <AppButton onClick={() => recordGift(row.person.id, null)} className="self-center whitespace-nowrap">Give</AppButton>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  </div>}
+  
+  {tab === "lists" && <ListsScreen data={data} setActiveListId={setActiveListId} setLastOpenedListId={setLastOpenedListId} setSearch={setSearch} setTab={setTab} addList={addList} onRename={(listId) => setRenameGroupId(listId)} />}
+  
+  {tab === "listDetail" && activeList && <div className="space-y-4">
+    <SectionCard title={activeList.name} action={<div className="flex items-center gap-2"><AppButton variant="secondary" onClick={() => setTab("lists")}>Back to Groups</AppButton><AppButton variant="secondary" onClick={() => setRenameGroupId(activeList.id)}>Rename Group</AppButton><Badge tone="orange">{currentBread?.name || itemSingular}</Badge></div>}>
+      <div className="rounded-2xl border bg-stone-50 px-3 py-2 flex items-center gap-2">
+        <Search className="w-4 h-4 text-gray-400" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or associated person" className="bg-transparent outline-none w-full" />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <AppButton onClick={() => setAddPersonContext({ listId: activeList.id })}><UserPlus className="w-4 h-4 inline mr-1" />Add Person</AppButton>
+        <AppButton onClick={() => setShowAddExisting(true)} variant="secondary">Add Existing</AppButton>
+        <AppButton onClick={() => resetListCycle(activeList.id)} variant="secondary"><RotateCcw className="w-4 h-4 inline mr-1" />Reset Group Cycle</AppButton>
+      </div>
+    </SectionCard>
+    
+    <SectionCard title="Not Yet Gifted This Cycle">
+      <div className="space-y-3">
+        {activeListRows.filter((r) => !r.checked).map((row) => (
+        <PersonRow key={row.person.id} row={row} mode="list" itemSingular={itemSingular} itemPlural={itemPlural} onGift={() => recordGift(row.person.id, activeList.id)} onOpen={() => setPersonModalId(row.person.id)} onToggleGiftDateEdit={() => {}} />
+        ))}
+        {!activeListRows.filter((r) => !r.checked).length && <div className="text-sm text-gray-500">Everyone in this group has been gifted in the current cycle.</div>}
+      </div>
+    </SectionCard>
+    
+    <SectionCard title="Already Gifted This Cycle">
+      <div className="space-y-3">
+        {activeListRows.filter((r) => r.checked).map((row) => (
+          <PersonRow key={row.person.id} row={row} mode="list" itemSingular={itemSingular} itemPlural={itemPlural} onGift={() => {}} onOpen={() => setPersonModalId(row.person.id)} onToggleGiftDateEdit={() => setEditGiftRow(row.lastOnList)} />
+        ))}
+        {!activeListRows.filter((r) => r.checked).length && <div className="text-sm text-gray-500">No one checked off yet.</div>}
+      </div>
+    </SectionCard>
+  </div>}
+  
+  {tab === "bread" && <BreadManagerScreen breadTypes={data.breadTypes} setCurrentBread={setCurrentBread} requestDeleteBreadType={setDeleteBreadId} openAdd={() => setShowBreadManager(true)} />}
+  {tab === "setup" && (
+    <SetupScreen
+      settings={settings}
+      onSave={updateAppSettings}
+      savedPulse={setupSavedPulse}
+      data={data}
+      onRestore={restorePerson}
+    />
+  )}
+  </div>
+  
+  <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t z-40">
+    <div className="max-w-5xl mx-auto grid grid-cols-5 px-2 py-2">
+      {[["home", Home, "Home"], ["people", Users, "People"], ["lists", ListChecks, "Groups"], ["bread", Bread, "Gift Types"], ["setup", SettingsIcon, "Setup"]].map(([key, IconCmp, label]) => (
+      <button key={key} onClick={() => { setTab(key); setSearch(""); }} className={`rounded-2xl py-2 flex flex-col items-center gap-1 text-xs ${tab === key ? "bg-stone-100 font-semibold" : "text-gray-500"}`}>
+      <IconCmp className="w-5 h-5" />
+      <span>{label}</span>
+      </button>
+      ))}
+    </div>
+  </div>
+  
+  {undoGift && <div className="fixed left-3 right-3 bottom-24 z-50">
+    <div className="max-w-3xl mx-auto rounded-3xl bg-white shadow-xl border p-4 flex items-center gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold truncate">{itemSingular.charAt(0).toUpperCase() + itemSingular.slice(1)} recorded for {personById(undoGift.personId)?.name}</div>
+        <div className="text-sm text-gray-500">{undoGift.breadTypeName} · {formatDate(undoGift.date)}</div>
+      </div>
+      <div className="flex gap-2">
+        <AppButton onClick={() => setEditGiftRow(undoGift)} variant="secondary">Edit Date</AppButton>
+        <AppButton onClick={undoLastGift} variant="secondary">Undo</AppButton>
+      </div>
+    </div>
+  </div>}
+  
+  {addPersonContext && <AddPersonModal list={data.lists.find((l) => l.id === addPersonContext.listId) || null} onClose={() => setAddPersonContext(null)} onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }} />}
+  
+  {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
+  //1.2.6
+  {selectedPerson && (
+    <PersonDetailModal person={selectedPerson} 
+      gifts={selectedPersonGifts} 
+      lists={data.lists} 
+      memberships={data.memberships} 
+      enableFeedback={settings.enableFeedback} 
+      enableRatings={settings.enableRatings} 
+      onClose={() => setPersonModalId(null)} 
+      onEditPerson={() => setEditPersonId(selectedPerson.id)} 
+      onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} 
+      onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating) } 
+      onRemoveFromGroup={(groupId) => removePersonFromGroup(selectedPerson.id, groupId)} 
+      onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)} 
+      onDeactivate={deactivatePerson} 
+  />)}
+  {showBreadManager && <AddBreadModal onClose={() => setShowBreadManager(false)} onSave={(name) => { addBreadType(name); setShowBreadManager(false); }} />}
+  
+  {editGiftRow && <EditGiftDateModal gift={editGiftRow} onClose={() => setEditGiftRow(null)} onSave={(date) => { updateGiftDate(editGiftRow.id, date); setEditGiftRow(null); }} />}
+    
+  {deleteBreadId && <ConfirmDeleteBreadModal bread={data.breadTypes.find((b) => b.id === deleteBreadId)} onClose={() => setDeleteBreadId(null)} onConfirm={confirmDeleteBreadType} />}
+    
+  {editPersonId && <EditPersonModal person={personById(editPersonId)} onClose={() => setEditPersonId(null)} onSave={(updates) => { updatePerson(editPersonId, updates); setEditPersonId(null); }} />}
+    
+  {editFeedbackGiftId && <EditGiftFeedbackModal gift={data.gifts.find((g) => g.id === editFeedbackGiftId)} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setEditFeedbackGiftId(null)} onSave={(feedback, rating) => { updateGiftFeedback(editFeedbackGiftId, feedback, rating); setEditFeedbackGiftId(null); }} />}
+  {renameGroupId && <RenameGroupModal group={data.lists.find((list) => list.id === renameGroupId)} onClose={() => setRenameGroupId(null)} onSave={(name) => { renameList(renameGroupId, name); setRenameGroupId(null); }} />}
+  </div>
   );
 } // end of BreadGiftingTrackerWebApp()
