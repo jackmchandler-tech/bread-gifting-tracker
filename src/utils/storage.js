@@ -15,8 +15,17 @@ export function normalizeData(raw) {
     appSettings: { ...DEFAULT_APP_SETTINGS, ...(data.appSettings || {}) },
   };
 }
-
 export function defaultData() {
+  // start with no seed data
+  return {
+    people: [],
+    lists: [],
+    memberships: [],
+    gifts: [],
+  };
+} // end of defaultData()
+
+function old_defaultData() {
   const fishList = "list_fish";
   const neighborsList = "list_neighbors";
   const p1 = "p_joe";
