@@ -6,7 +6,7 @@ import { normalizeData, defaultData, loadData }           from "./utils/storage"
 import { downloadTextFile }                               from "./utils/file";
 import SetupScreen                                        from "./components/SetupScreen";
 import PersonDetailModal                                  from "./components/PersonDetailModal";
-import AddPersonToGroupModal                              from "./components/AddPersonToGroupModal";
+import { AddPersonToGroupModal }                          from "./components/AddPersonToGroupModal";
 
 function Icon({ children, className = "w-5 h-5", title }) {
   return (
@@ -982,6 +982,7 @@ function BreadGiftingTrackerWebApp() {
         addExistingPersonToList(membershipModalPersonId, groupId);
         setMembershipModalPersonId(null);
       }}
+      Modal={Modal}
     />
   )}
     
