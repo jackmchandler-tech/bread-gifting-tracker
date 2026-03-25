@@ -155,6 +155,7 @@ function StarPicker({ value, onChange }) {
 
 function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, setTab, addList, onRename }) {
   const [newListName, setNewListName] = useState("");
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   return (
     <div className="space-y-4">
       <SectionCard title="Groups">
@@ -207,6 +208,7 @@ function BreadManagerScreen({ breadTypes, setCurrentBread, requestDeleteBreadTyp
 
 function AddPersonModal({ list, onClose, onSave }) {
   const [form, setForm] = useState({ name: "", associatedName: "", howMet: "", note: "", phone: "" });
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const nameRef = useRef(null);
   useEffect(() => { nameRef.current?.focus(); }, []);
   return (
@@ -231,6 +233,7 @@ function AddPersonModal({ list, onClose, onSave }) {
 
 function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
   const [search, setSearch] = useState("");
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const alreadyInList = new Set(memberships.filter((m) => m.listId === list.id).map((m) => m.personId));
   const options = people
     .filter((p) => p.active !==false && !alreadyInList.has(p.id))
@@ -262,6 +265,7 @@ function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
 
 function AddBreadModal({ onClose, onSave }) {
   const [name, setName] = useState("");
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
   return (
@@ -293,6 +297,7 @@ function ConfirmDeleteBreadModal({ bread, onClose, onConfirm }) {
 
 function EditGiftDateModal({ gift, onClose, onSave }) {
   const [date, setDate] = useState(gift?.date || todayInputValue());
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
   return (
@@ -312,6 +317,7 @@ function EditPersonModal({ person, onClose, onSave }) {
   const [form, setForm] = useState({
     name: person?.name || "", associatedName: person?.associatedName || "", howMet: person?.howMet || "", note: person?.note || "", phone: person?.phone || "",
   });
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const nameRef = useRef(null);
   useEffect(() => { nameRef.current?.focus(); }, []);
   return (
@@ -334,6 +340,7 @@ function EditPersonModal({ person, onClose, onSave }) {
 function EditGiftFeedbackModal({ gift, enableFeedback, enableRatings, onClose, onSave }) {
   const [feedback, setFeedback] = useState(gift?.feedback || "");
   const [rating, setRating] = useState(gift?.rating || 0);
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const textRef = useRef(null);
   useEffect(() => { textRef.current?.focus(); }, []);
   return (
@@ -353,6 +360,7 @@ function EditGiftFeedbackModal({ gift, enableFeedback, enableRatings, onClose, o
 
 function RenameGroupModal({ group, onClose, onSave }) {
   const [name, setName] = useState(group?.name || "");
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
   return (
@@ -397,6 +405,7 @@ function BreadGiftingTrackerWebApp() {
   const [setupSavedPulse, setSetupSavedPulse] = useState(false);
   const backupInputRef = useRef(null);
   const peopleCsvInputRef = useRef(null);
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   
   useEffect(() => { setData(loadData(STORAGE_KEY)); }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }, [data]);
@@ -454,6 +463,15 @@ function BreadGiftingTrackerWebApp() {
   //
   // end of 1.2.6 addition
   // ------------------------------------------------------------------------
+  // 1.3.0 -----------------------
+  function removePersonFromGroup(personId, listId) {
+    setData((d) => ({
+      ...d,
+      memberships: d.memberships.filter(
+        (m) => !(m.personId === personId && m.listId === listId)
+      ),
+    }));
+  } // end of removePersonFromGroup()
   
   function giftsForPerson(id) { return data.gifts.filter((g) => g.personId === id).sort((a, b) => b.date.localeCompare(a.date)); }
   function lastGiftAnywhere(personId) { return giftsForPerson(personId)[0] || null; }
@@ -945,6 +963,23 @@ function BreadGiftingTrackerWebApp() {
       Modal={Modal}
       Phone={Phone}
       StarPicker={StarPicker}
+    />
+  )}
+   // 1.3.0 ---------------------------------
+  {membershipModalPersonId && (
+    <AddPersonToGroupModal
+      person={data.people.find((p) => p.id === membershipModalPersonId)}
+      availableGroups={data.lists.filter(
+        (l) =>
+          !data.memberships.some(
+            (m) => m.personId === membershipModalPersonId && m.listId === l.id
+          )
+      )}
+      onClose={() => setMembershipModalPersonId(null)}
+      onAdd={(groupId) => {
+        addExistingPersonToList(membershipModalPersonId, groupId);
+        setMembershipModalPersonId(null);
+      }}
     />
   )}
     
