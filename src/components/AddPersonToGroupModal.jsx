@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+
 export function AddPersonToGroupModal({ person, availableGroups, onClose, onAdd }) {
   return (
     <Modal title={`Add ${person?.name || "Person"} to Group`} onClose={onClose}>
