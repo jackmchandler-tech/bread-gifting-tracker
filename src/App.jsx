@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState }    from "react";
 import { STORAGE_KEY, APP_VERSION, DEFAULT_APP_SETTINGS } from "./constants";
-import { todayInputValue, formatDate } from "./utils/dates";
-import { parseCsv, buildCsv } from "./utils/csv";
-import { normalizeData, defaultData, loadData } from "./utils/storage";
-import { downloadTextFile } from "./utils/file";
-import SetupScreen from "./components/SetupScreen";
-import PersonDetailModal from "./components/PersonDetailModal";
-import AddPersonToGroupModal from "./components/AddPersonToGroupModal";
+import { todayInputValue, formatDate }                    from "./utils/dates";
+import { parseCsv, buildCsv }                             from "./utils/csv";
+import { normalizeData, defaultData, loadData }           from "./utils/storage";
+import { downloadTextFile }                               from "./utils/file";
+import SetupScreen                                        from "./components/SetupScreen";
+import PersonDetailModal                                  from "./components/PersonDetailModal";
+import AddPersonToGroupModal                              from "./components/AddPersonToGroupModal";
 
 function Icon({ children, className = "w-5 h-5", title }) {
   return (
@@ -14,7 +14,7 @@ function Icon({ children, className = "w-5 h-5", title }) {
       {children}
     </span>
   );
-}
+} // end of Icon()
 
 const Search = ({ className = "w-5 h-5 text-gray-400" }) => <Icon className={className}>🔎</Icon>;
 const Plus = ({ className = "w-5 h-5" }) => <Icon className={className}>＋</Icon>;
