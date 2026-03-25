@@ -5,6 +5,7 @@ import { parseCsv, buildCsv } from "./utils/csv";
 import { normalizeData, defaultData, loadData } from "./utils/storage";
 import { downloadTextFile } from "./utils/file";
 import SetupScreen from "./components/SetupScreen";
+import PersonDetailModal from "./components/PersonDetailModal";
 
 function Icon({ children, className = "w-5 h-5", title }) {
   return (
@@ -257,97 +258,7 @@ function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
   );
 }
 
-//1.2.6function PersonDetailModal({ person, gifts, lists, enableFeedback, enableRatings, onClose, onEditPerson, onEditGiftFeedback, onSaveFeedback }) {
-function PersonDetailModal({
-  person,
-  gifts,
-  lists,
-  memberships,
-  enableFeedback,
-  enableRatings,
-  onClose,
-  onEditPerson,
-  onEditGiftFeedback,
-  onSaveFeedback,
-  onRemoveFromGroup,
-  onOpenAddToGroup,
-  onDeactivate,
-}) {
-  const latest = gifts[0] || null;
-  const [feedback, setFeedback] = useState(latest?.feedback || "");
-  const [rating, setRating] = useState(latest?.rating || 0);
-  const [editingFeedback, setEditingFeedback] = useState(false);
-  const sourceName = (gift) => lists.find((l) => l.id === gift.listId)?.name || "All People";
-  const hasSavedFeedback = latest && (latest.feedback || latest.rating);
 
-  return (
-    <Modal title={person.name} onClose={onClose}>
-      <div className="space-y-4">
-      <SectionCard
-          title="Details"
-          action={
-            <AppButton onClick={onEditPerson} variant="secondary">
-              Edit Person
-            </AppButton>
-          }
-        >
-          {!!person.associatedName && (
-            <div className="text-sm">
-              <span className="font-medium">Associated:</span> {person.associatedName}
-            </div>
-          )}
-        
-          {!!person.howMet && (
-            <div className="text-sm">
-              <span className="font-medium">How met:</span> {person.howMet}
-            </div>
-          )}
-        
-          {!!person.note && (
-            <div className="text-sm">
-              <span className="font-medium">Note:</span> {person.note}
-            </div>
-          )}
-        
-          {!!person.phone && (
-            <div className="text-sm flex items-center gap-2">
-              <Phone className="w-4 h-4" />
-              {person.phone}
-            </div>
-          )}
-        
-          <div className="pt-2">
-            <AppButton
-              variant="danger"
-              onClick={() => {
-                if (confirm("Deactivate this person? They will be hidden but not deleted.")) {
-                  onDeactivate(person.id);
-                  onClose();
-                }
-              }}
-            >
-              Deactivate Person
-            </AppButton>
-          </div>
-        </SectionCard>
-        <SectionCard title="Gift History">
-          <div className="space-y-3">
-            {gifts.map((gift) => (
-              <div key={gift.id} className="rounded-2xl border p-3 space-y-2">
-                <div className="font-medium">{formatDate(gift.date)} · {gift.breadTypeName}</div>
-                <div className="text-sm text-gray-500">{sourceName(gift)}</div>
-                {!!gift.rating && enableRatings && <div className="text-sm mt-2 text-amber-700">{"★".repeat(gift.rating)}{"☆".repeat(5 - gift.rating)}</div>}
-                {!!gift.feedback && enableFeedback && <div className="text-sm mt-2">{gift.feedback}</div>}
-                {(enableFeedback || enableRatings) && <div><AppButton variant="secondary" onClick={() => onEditGiftFeedback(gift.id)}>Edit Feedback</AppButton></div>}
-              </div>
-            ))}
-            {!gifts.length && <div className="text-sm text-gray-500">No gift history yet.</div>}
-          </div>
-        </SectionCard>
-      </div>
-    </Modal>
-  );
-}
 
 function AddBreadModal({ onClose, onSave }) {
   const [name, setName] = useState("");
@@ -1010,22 +921,33 @@ function BreadGiftingTrackerWebApp() {
   {addPersonContext && <AddPersonModal list={data.lists.find((l) => l.id === addPersonContext.listId) || null} onClose={() => setAddPersonContext(null)} onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }} />}
   
   {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
-  //1.2.6
   {selectedPerson && (
-    <PersonDetailModal person={selectedPerson} 
-      gifts={selectedPersonGifts} 
-      lists={data.lists} 
-      memberships={data.memberships} 
-      enableFeedback={settings.enableFeedback} 
-      enableRatings={settings.enableRatings} 
-      onClose={() => setPersonModalId(null)} 
-      onEditPerson={() => setEditPersonId(selectedPerson.id)} 
-      onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} 
-      onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating) } 
-      onRemoveFromGroup={(groupId) => removePersonFromGroup(selectedPerson.id, groupId)} 
-      onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)} 
-      onDeactivate={deactivatePerson} 
-  />)}
+    <PersonDetailModal
+      person={selectedPerson}
+      gifts={selectedPersonGifts}
+      lists={data.lists}
+      memberships={data.memberships}
+      enableFeedback={settings.enableFeedback}
+      enableRatings={settings.enableRatings}
+      onClose={() => setPersonModalId(null)}
+      onEditPerson={() => setEditPersonId(selectedPerson.id)}
+      onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)}
+      onSaveFeedback={(feedback, rating) =>
+        updateLatestGiftFeedback(selectedPerson.id, feedback, rating)
+      }
+      onRemoveFromGroup={(groupId) =>
+        removePersonFromGroup(selectedPerson.id, groupId)
+      }
+      onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)}
+      onDeactivate={deactivatePerson}
+      SectionCard={SectionCard}
+      AppButton={AppButton}
+      Modal={Modal}
+      Phone={Phone}
+      StarPicker={StarPicker}
+    />
+  )}
+    
   {showBreadManager && <AddBreadModal onClose={() => setShowBreadManager(false)} onSave={(name) => { addBreadType(name); setShowBreadManager(false); }} />}
   
   {editGiftRow && <EditGiftDateModal gift={editGiftRow} onClose={() => setEditGiftRow(null)} onSave={(date) => { updateGiftDate(editGiftRow.id, date); setEditGiftRow(null); }} />}
