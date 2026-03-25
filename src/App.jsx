@@ -1,9 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState }    from "react";
 import { STORAGE_KEY, APP_VERSION, DEFAULT_APP_SETTINGS } from "./constants";
-import { todayInputValue, formatDate } from "./utils/dates";
-import { parseCsv, buildCsv } from "./utils/csv";
-import { normalizeData, defaultData, loadData } from "./utils/storage";
-import { downloadTextFile } from "./utils/file";
+import { todayInputValue, formatDate }                    from "./utils/dates";
+import { parseCsv, buildCsv }                             from "./utils/csv";
+import { normalizeData, defaultData, loadData }           from "./utils/storage";
+import { downloadTextFile }                               from "./utils/file";
+import SetupScreen                                        from "./components/SetupScreen";
+import PersonDetailModal                                  from "./components/PersonDetailModal";
+import { AddPersonToGroupModal }                          from "./components/AddPersonToGroupModal";
 
 function Icon({ children, className = "w-5 h-5", title }) {
   return (
@@ -11,7 +14,7 @@ function Icon({ children, className = "w-5 h-5", title }) {
       {children}
     </span>
   );
-}
+} // end of Icon()
 
 const Search = ({ className = "w-5 h-5 text-gray-400" }) => <Icon className={className}>🔎</Icon>;
 const Plus = ({ className = "w-5 h-5" }) => <Icon className={className}>＋</Icon>;
@@ -153,6 +156,7 @@ function StarPicker({ value, onChange }) {
 
 function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, setTab, addList, onRename }) {
   const [newListName, setNewListName] = useState("");
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   return (
     <div className="space-y-4">
       <SectionCard title="Groups">
@@ -201,104 +205,12 @@ function BreadManagerScreen({ breadTypes, setCurrentBread, requestDeleteBreadTyp
       </div>
     </SectionCard>
   );
-}
+} // end of BreadManagerScreen()
 
-function SetupScreen({ settings, onSave, savedPulse, data, onRestore }) {
-  const [form, setForm] = useState({
-    title: settings.title || "Bread Tracker",
-    itemSingular: settings.itemSingular || "loaf",
-    itemPlural: settings.itemPlural || "loaves",
-    enableRatings: settings.enableRatings ?? true,
-    enableFeedback: settings.enableFeedback ?? true,
-  });
-
-  useEffect(() => {
-    setForm({
-      title: settings.title || "Bread Tracker",
-      itemSingular: settings.itemSingular || "loaf",
-      itemPlural: settings.itemPlural || "loaves",
-      enableRatings: settings.enableRatings ?? true,
-      enableFeedback: settings.enableFeedback ?? true,
-    });
-  }, [settings]);
-
-  return (
-      <div className="space-y-4">
-        <SectionCard
-          title="Setup"
-          action={<Badge tone={savedPulse ? "green" : "gray"}>{savedPulse ? "Saved" : "Ready"}</Badge>}
-        >
-          <div className="space-y-3">
-          <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="App title" className="w-full rounded-2xl border px-3 py-3 outline-none" />
-          <div className="grid grid-cols-2 gap-3">
-            <input value={form.itemSingular} onChange={(e) => setForm((f) => ({ ...f, itemSingular: e.target.value }))} placeholder="Singular item" className="w-full rounded-2xl border px-3 py-3 outline-none" />
-            <input value={form.itemPlural} onChange={(e) => setForm((f) => ({ ...f, itemPlural: e.target.value }))} placeholder="Plural item" className="w-full rounded-2xl border px-3 py-3 outline-none" />
-          </div>
-          <label className="flex items-center justify-between rounded-2xl border px-3 py-3">
-            <span className="text-sm font-medium">Enable ratings</span>
-            <input type="checkbox" checked={form.enableRatings} onChange={(e) => setForm((f) => ({ ...f, enableRatings: e.target.checked }))} />
-          </label>
-          <label className="flex items-center justify-between rounded-2xl border px-3 py-3">
-            <span className="text-sm font-medium">Enable feedback</span>
-            <input type="checkbox" checked={form.enableFeedback} onChange={(e) => setForm((f) => ({ ...f, enableFeedback: e.target.checked }))} />
-          </label>
-          <div className="flex justify-end">
-            <AppButton onClick={() => onSave({
-              title: form.title.trim() || "Giving Tracker",
-              itemSingular: form.itemSingular.trim() || "gift",
-              itemPlural: form.itemPlural.trim() || "gifts",
-              enableRatings: !!form.enableRatings,
-              enableFeedback: !!form.enableFeedback,
-            })}>Save Setup</AppButton>
-          </div>
-            <div className="text-xs text-gray-500">
-              These toggles affect visibility only. Existing ratings and feedback are preserved.
-            </div>
-        </div>
-      </SectionCard>
-      <SectionCard title="Preview">
-        <div className="text-sm text-gray-600 space-y-1">
-          <div><span className="font-medium">Title:</span> {form.title || "Giving Tracker"}</div>
-          <div><span className="font-medium">Single item:</span> {form.itemSingular || "gift"}</div>
-          <div><span className="font-medium">Plural item:</span> {form.itemPlural || "gifts"}</div>
-          <div><span className="font-medium">Ratings:</span> {form.enableRatings ? "On" : "Hidden"}</div>
-          <div><span className="font-medium">Feedback:</span> {form.enableFeedback ? "On" : "Hidden"}</div>
-        </div>
-      </SectionCard>
-      
-      <SectionCard title="Inactive People">
-        <div className="space-y-2">
-          {data.people.filter((p) => p.active === false).map((p) => (
-            <div
-              key={p.id}
-              className="flex justify-between items-center border rounded-xl px-3 py-2"
-            >
-              <div>
-                <div className="font-medium">{p.name}</div>
-                <div className="text-xs text-gray-500">{p.associatedName || ""}</div>
-              </div>
-              <AppButton
-                onClick={() => {
-                  //console.log("Restore clicked for", p.id);
-                  onRestore(p.id);
-                }}
-              >
-                Restore
-              </AppButton>
-            </div>
-          ))}
-      
-          {!data.people.some((p) => p.active === false) && (
-            <div className="text-sm text-gray-500">No inactive people.</div>
-          )}
-        </div>
-      </SectionCard>
-    </div>
-  );
-}
 
 function AddPersonModal({ list, onClose, onSave }) {
   const [form, setForm] = useState({ name: "", associatedName: "", howMet: "", note: "", phone: "" });
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const nameRef = useRef(null);
   useEffect(() => { nameRef.current?.focus(); }, []);
   return (
@@ -323,6 +235,7 @@ function AddPersonModal({ list, onClose, onSave }) {
 
 function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
   const [search, setSearch] = useState("");
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const alreadyInList = new Set(memberships.filter((m) => m.listId === list.id).map((m) => m.personId));
   const options = people
     .filter((p) => p.active !==false && !alreadyInList.has(p.id))
@@ -350,100 +263,11 @@ function AddExistingModal({ list, people, memberships, onClose, onAdd }) {
   );
 }
 
-//1.2.6function PersonDetailModal({ person, gifts, lists, enableFeedback, enableRatings, onClose, onEditPerson, onEditGiftFeedback, onSaveFeedback }) {
-function PersonDetailModal({
-  person,
-  gifts,
-  lists,
-  memberships,
-  enableFeedback,
-  enableRatings,
-  onClose,
-  onEditPerson,
-  onEditGiftFeedback,
-  onSaveFeedback,
-  onRemoveFromGroup,
-  onOpenAddToGroup,
-  onDeactivate,
-}) {
-  const latest = gifts[0] || null;
-  const [feedback, setFeedback] = useState(latest?.feedback || "");
-  const [rating, setRating] = useState(latest?.rating || 0);
-  const [editingFeedback, setEditingFeedback] = useState(false);
-  const sourceName = (gift) => lists.find((l) => l.id === gift.listId)?.name || "All People";
-  const hasSavedFeedback = latest && (latest.feedback || latest.rating);
 
-  return (
-    <Modal title={person.name} onClose={onClose}>
-      <div className="space-y-4">
-      <SectionCard
-          title="Details"
-          action={
-            <AppButton onClick={onEditPerson} variant="secondary">
-              Edit Person
-            </AppButton>
-          }
-        >
-          {!!person.associatedName && (
-            <div className="text-sm">
-              <span className="font-medium">Associated:</span> {person.associatedName}
-            </div>
-          )}
-        
-          {!!person.howMet && (
-            <div className="text-sm">
-              <span className="font-medium">How met:</span> {person.howMet}
-            </div>
-          )}
-        
-          {!!person.note && (
-            <div className="text-sm">
-              <span className="font-medium">Note:</span> {person.note}
-            </div>
-          )}
-        
-          {!!person.phone && (
-            <div className="text-sm flex items-center gap-2">
-              <Phone className="w-4 h-4" />
-              {person.phone}
-            </div>
-          )}
-        
-          <div className="pt-2">
-            <AppButton
-              variant="danger"
-              onClick={() => {
-                if (confirm("Deactivate this person? They will be hidden but not deleted.")) {
-                  onDeactivate(person.id);
-                  onClose();
-                }
-              }}
-            >
-              Deactivate Person
-            </AppButton>
-          </div>
-        </SectionCard>
-        <SectionCard title="Gift History">
-          <div className="space-y-3">
-            {gifts.map((gift) => (
-              <div key={gift.id} className="rounded-2xl border p-3 space-y-2">
-                <div className="font-medium">{formatDate(gift.date)} · {gift.breadTypeName}</div>
-                <div className="text-sm text-gray-500">{sourceName(gift)}</div>
-                {!!gift.rating && enableRatings && <div className="text-sm mt-2 text-amber-700">{"★".repeat(gift.rating)}{"☆".repeat(5 - gift.rating)}</div>}
-                {!!gift.feedback && enableFeedback && <div className="text-sm mt-2">{gift.feedback}</div>}
-                {(enableFeedback || enableRatings) && <div><AppButton variant="secondary" onClick={() => onEditGiftFeedback(gift.id)}>Edit Feedback</AppButton></div>}
-              </div>
-            ))}
-            {!gifts.length && <div className="text-sm text-gray-500">No gift history yet.</div>}
-          </div>
-        </SectionCard>
-      </div>
-    </Modal>
-  );
-}
 
 function AddBreadModal({ onClose, onSave }) {
   const [name, setName] = useState("");
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
   return (
@@ -475,6 +299,7 @@ function ConfirmDeleteBreadModal({ bread, onClose, onConfirm }) {
 
 function EditGiftDateModal({ gift, onClose, onSave }) {
   const [date, setDate] = useState(gift?.date || todayInputValue());
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
   return (
@@ -494,6 +319,7 @@ function EditPersonModal({ person, onClose, onSave }) {
   const [form, setForm] = useState({
     name: person?.name || "", associatedName: person?.associatedName || "", howMet: person?.howMet || "", note: person?.note || "", phone: person?.phone || "",
   });
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const nameRef = useRef(null);
   useEffect(() => { nameRef.current?.focus(); }, []);
   return (
@@ -516,6 +342,7 @@ function EditPersonModal({ person, onClose, onSave }) {
 function EditGiftFeedbackModal({ gift, enableFeedback, enableRatings, onClose, onSave }) {
   const [feedback, setFeedback] = useState(gift?.feedback || "");
   const [rating, setRating] = useState(gift?.rating || 0);
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const textRef = useRef(null);
   useEffect(() => { textRef.current?.focus(); }, []);
   return (
@@ -535,6 +362,7 @@ function EditGiftFeedbackModal({ gift, enableFeedback, enableRatings, onClose, o
 
 function RenameGroupModal({ group, onClose, onSave }) {
   const [name, setName] = useState(group?.name || "");
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
   return (
@@ -579,6 +407,7 @@ function BreadGiftingTrackerWebApp() {
   const [setupSavedPulse, setSetupSavedPulse] = useState(false);
   const backupInputRef = useRef(null);
   const peopleCsvInputRef = useRef(null);
+  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   
   useEffect(() => { setData(loadData(STORAGE_KEY)); }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }, [data]);
@@ -636,6 +465,15 @@ function BreadGiftingTrackerWebApp() {
   //
   // end of 1.2.6 addition
   // ------------------------------------------------------------------------
+  // 1.3.0 -----------------------
+  function removePersonFromGroup(personId, listId) {
+    setData((d) => ({
+      ...d,
+      memberships: d.memberships.filter(
+        (m) => !(m.personId === personId && m.listId === listId)
+      ),
+    }));
+  } // end of removePersonFromGroup()
   
   function giftsForPerson(id) { return data.gifts.filter((g) => g.personId === id).sort((a, b) => b.date.localeCompare(a.date)); }
   function lastGiftAnywhere(personId) { return giftsForPerson(personId)[0] || null; }
@@ -1069,6 +907,9 @@ function BreadGiftingTrackerWebApp() {
       savedPulse={setupSavedPulse}
       data={data}
       onRestore={restorePerson}
+      SectionCard={SectionCard}
+      Badge={Badge}
+      AppButton={AppButton}
     />
   )}
   </div>
@@ -1100,22 +941,51 @@ function BreadGiftingTrackerWebApp() {
   {addPersonContext && <AddPersonModal list={data.lists.find((l) => l.id === addPersonContext.listId) || null} onClose={() => setAddPersonContext(null)} onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }} />}
   
   {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
-  //1.2.6
   {selectedPerson && (
-    <PersonDetailModal person={selectedPerson} 
-      gifts={selectedPersonGifts} 
-      lists={data.lists} 
-      memberships={data.memberships} 
-      enableFeedback={settings.enableFeedback} 
-      enableRatings={settings.enableRatings} 
-      onClose={() => setPersonModalId(null)} 
-      onEditPerson={() => setEditPersonId(selectedPerson.id)} 
-      onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)} 
-      onSaveFeedback={(feedback, rating) => updateLatestGiftFeedback(selectedPerson.id, feedback, rating) } 
-      onRemoveFromGroup={(groupId) => removePersonFromGroup(selectedPerson.id, groupId)} 
-      onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)} 
-      onDeactivate={deactivatePerson} 
-  />)}
+    <PersonDetailModal
+      person={selectedPerson}
+      gifts={selectedPersonGifts}
+      lists={data.lists}
+      memberships={data.memberships}
+      enableFeedback={settings.enableFeedback}
+      enableRatings={settings.enableRatings}
+      onClose={() => setPersonModalId(null)}
+      onEditPerson={() => setEditPersonId(selectedPerson.id)}
+      onEditGiftFeedback={(giftId) => setEditFeedbackGiftId(giftId)}
+      onSaveFeedback={(feedback, rating) =>
+        updateLatestGiftFeedback(selectedPerson.id, feedback, rating)
+      }
+      onRemoveFromGroup={(groupId) =>
+        removePersonFromGroup(selectedPerson.id, groupId)
+      }
+      onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)}
+      onDeactivate={deactivatePerson}
+      SectionCard={SectionCard}
+      AppButton={AppButton}
+      Modal={Modal}
+      Phone={Phone}
+      StarPicker={StarPicker}
+    />
+  )}
+   // 1.3.0 ---------------------------------
+  {membershipModalPersonId && (
+    <AddPersonToGroupModal
+      person={data.people.find((p) => p.id === membershipModalPersonId)}
+      availableGroups={data.lists.filter(
+        (l) =>
+          !data.memberships.some(
+            (m) => m.personId === membershipModalPersonId && m.listId === l.id
+          )
+      )}
+      onClose={() => setMembershipModalPersonId(null)}
+      onAdd={(groupId) => {
+        addExistingPersonToList(membershipModalPersonId, groupId);
+        setMembershipModalPersonId(null);
+      }}
+      Modal={Modal}
+    />
+  )}
+    
   {showBreadManager && <AddBreadModal onClose={() => setShowBreadManager(false)} onSave={(name) => { addBreadType(name); setShowBreadManager(false); }} />}
   
   {editGiftRow && <EditGiftDateModal gift={editGiftRow} onClose={() => setEditGiftRow(null)} onSave={(date) => { updateGiftDate(editGiftRow.id, date); setEditGiftRow(null); }} />}
