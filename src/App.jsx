@@ -8,11 +8,11 @@ import SetupScreen                                        from "./components/Set
 import PersonDetailModal                                  from "./components/PersonDetailModal";
 import { AddPersonToGroupModal }                          from "./components/AddPersonToGroupModal";
 import { AddPersonModal }                                 from "./components/AddPersonModal";
-import AppButton from "./components/ui/AppButton";
-import Badge from "./components/ui/Badge";
-import Modal from "./components/ui/Modal";
-import SectionCard from "./components/ui/SectionCard";
-import StarPicker from "./components/ui/StarPicker";
+import AppButton                                          from "./components/ui/AppButton";
+import Badge                                              from "./components/ui/Badge";
+import Modal                                              from "./components/ui/Modal";
+import SectionCard                                        from "./components/ui/SectionCard";
+import StarPicker                                         from "./components/ui/StarPicker";
 import {
   Search,
   Plus,
@@ -815,9 +815,6 @@ function BreadGiftingTrackerWebApp() {
       savedPulse={setupSavedPulse}
       data={data}
       onRestore={restorePerson}
-      SectionCard={SectionCard}
-      Badge={Badge}
-      AppButton={AppButton}
     />
   )}
   </div>
@@ -846,13 +843,16 @@ function BreadGiftingTrackerWebApp() {
     </div>
   </div>}
   
-  {addPersonContext && <AddPersonModal 
-       list={data.lists.find((l) => l.id === addPersonContext.listId) || null} 
-       onClose={() => setAddPersonContext(null)} 
-       onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }}
-       Modal={Modal}
-       AppButton={AppButton}
-     />}
+  {addPersonContext && (
+    <AddPersonModal
+      list={data.lists.find((l) => l.id === addPersonContext.listId) || null}
+      onClose={() => setAddPersonContext(null)}
+      onSave={(form) => {
+        addPerson(form, addPersonContext.listId);
+        setAddPersonContext(null);
+      }}
+    />
+  )}
   
   {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
   {selectedPerson && (
@@ -874,11 +874,6 @@ function BreadGiftingTrackerWebApp() {
       }
       onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)}
       onDeactivate={deactivatePerson}
-      SectionCard={SectionCard}
-      AppButton={AppButton}
-      Modal={Modal}
-      Phone={Phone}
-      StarPicker={StarPicker}
     />
   )}
    // 1.3.0 ---------------------------------
@@ -896,7 +891,6 @@ function BreadGiftingTrackerWebApp() {
         addExistingPersonToList(membershipModalPersonId, groupId);
         setMembershipModalPersonId(null);
       }}
-      Modal={Modal}
     />
   )}
     
