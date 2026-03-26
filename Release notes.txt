@@ -1,3 +1,8 @@
+v1.3.2
+  - Moved shared UI pieces into src/components/ui.
+  - Extracted AppButton, Badge, Modal, SectionCard, StarPicker, and Icons.
+  - Simplified extracted feature components by removing temporary UI prop passing.
+  - No intended behavior changes.
 v1.3.1
   - Extracted AddPersonModal from App.jsx into its own component file.
   - Extracted AddPersonToGroupModay from App.jsx into its own component file.
