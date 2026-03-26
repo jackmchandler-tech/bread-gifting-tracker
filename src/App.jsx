@@ -921,6 +921,7 @@ function BreadGiftingTrackerWebApp() {
        onClose={() => setAddPersonContext(null)} 
        onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }}
        Modal={Modal}
+       AppButton={AppButton}
      />}
   
   {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
