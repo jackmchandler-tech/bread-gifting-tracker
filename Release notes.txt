@@ -1,3 +1,11 @@
+v1.3.1
+  - Extracted AddPersonModal from App.jsx into its own component file.
+  - Extracted AddPersonToGroupModay from App.jsx into its own component file.
+  - Continued App.jsx refactoring for easier maintenance.
+  - No intended behavior changes.
+v1.3.0
+  - Started refactoring App.jsx
+  - Pulled out SetupScreen & PersonDetailModal into their own component files.
 v1.2.6
   - Replaced Delete Person with Deactivate Person (non-destructive).
   - Added active flag to people to control visibility instead of using archived.
