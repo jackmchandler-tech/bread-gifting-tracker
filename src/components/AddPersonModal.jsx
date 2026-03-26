@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 export function AddPersonModal({ list, onClose, onSave, Modal }) {
   const [form, setForm] = useState({ name: "", associatedName: "", howMet: "", note: "", phone: "" });
