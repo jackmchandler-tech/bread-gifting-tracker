@@ -916,7 +916,12 @@ function BreadGiftingTrackerWebApp() {
     </div>
   </div>}
   
-  {addPersonContext && <AddPersonModal list={data.lists.find((l) => l.id === addPersonContext.listId) || null} onClose={() => setAddPersonContext(null)} onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }} />}
+  {addPersonContext && <AddPersonModal 
+       list={data.lists.find((l) => l.id === addPersonContext.listId) || null} 
+       onClose={() => setAddPersonContext(null)} 
+       onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }}
+       Modal={Modal}
+     />}
   
   {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
   {selectedPerson && (
