@@ -1,3 +1,7 @@
+v1.3.4
+  - Extracted EditPersonModal from App.jsx into its own component file.
+  - Continued App.jsx refactoring for easier maintenance.
+  - No intended behavior changes.
 v1.3.3
   - Fixed EditPersonModal not refreshing fields when switching people
   - Restored visibility/editability of Position/Note field
