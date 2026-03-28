@@ -1,6 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import Modal                                  from "./ui/Modal";
+import AppButton                              from "./ui/AppButton";
 
-export function AddPersonModal({ list, onClose, onSave, Modal, AppButton }) {
+export function AddPersonModal({
+  list,
+  onClose,
+  onSave,
+}) {
   const [form, setForm] = useState({ name: "", associatedName: "", howMet: "", note: "", phone: "" });
   const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
   const nameRef = useRef(null);

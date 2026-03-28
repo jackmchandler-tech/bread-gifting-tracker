@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import SectionCard                    from "./ui/SectionCard";
+import Badge                          from "./ui/Badge";
+import AppButton                      from "./ui/AppButton";
 
 export default function SetupScreen({
   settings,
@@ -6,9 +9,6 @@ export default function SetupScreen({
   savedPulse,
   data,
   onRestore,
-  SectionCard,
-  Badge,
-  AppButton,
 }) {
   const [form, setForm] = useState({
     title: settings.title || "Bread Tracker",

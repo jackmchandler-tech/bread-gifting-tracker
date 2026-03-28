@@ -1,4 +1,9 @@
 import React, { useEffect, useState } from "react";
+import SectionCard                    from "./ui/SectionCard";
+import AppButton                      from "./ui/AppButton";
+import Modal                          from "./ui/Modal";
+import StarPicker                     from "./ui/StarPicker";
+import { Phone }                      from "./ui/Icons";
 
 export default function PersonDetailModal({
   person,
@@ -14,11 +19,6 @@ export default function PersonDetailModal({
   onRemoveFromGroup,
   onOpenAddToGroup,
   onDeactivate,
-  SectionCard,
-  AppButton,
-  Modal,
-  Phone,
-  StarPicker,
 }) {
   const latest = gifts[0] || null;
   const [feedback, setFeedback] = useState(latest?.feedback || "");

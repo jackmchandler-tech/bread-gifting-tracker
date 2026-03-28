@@ -1,6 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import Modal from "./ui/Modal";
 
-export function AddPersonToGroupModal({ person, availableGroups, onClose, onAdd, Modal }) {
+export function AddPersonToGroupModal({
+  person,
+  availableGroups,
+  onClose,
+  onAdd,
+}) {
   return (
     <Modal title={`Add ${person?.name || "Person"} to Group`} onClose={onClose}>
       <div className="space-y-2">
@@ -13,7 +19,6 @@ export function AddPersonToGroupModal({ person, availableGroups, onClose, onAdd,
             <div className="font-medium">{group.name}</div>
           </button>
         ))}
-
         {!availableGroups.length && (
           <div className="text-sm text-gray-500">Already in every group.</div>
         )}

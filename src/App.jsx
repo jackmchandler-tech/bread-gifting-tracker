@@ -8,30 +8,28 @@ import SetupScreen                                        from "./components/Set
 import PersonDetailModal                                  from "./components/PersonDetailModal";
 import { AddPersonToGroupModal }                          from "./components/AddPersonToGroupModal";
 import { AddPersonModal }                                 from "./components/AddPersonModal";
+import AppButton                                          from "./components/ui/AppButton";
+import Badge                                              from "./components/ui/Badge";
+import Modal                                              from "./components/ui/Modal";
+import SectionCard                                        from "./components/ui/SectionCard";
+import StarPicker                                         from "./components/ui/StarPicker";
+import {
+  Search,
+  Plus,
+  RotateCcw,
+  Bread,
+  Users,
+  ListChecks,
+  Home,
+  Phone,
+  CheckSquare,
+  Square,
+  UserPlus,
+  Trash2,
+  SettingsIcon,
+} from "./components/ui/Icons";
 
-function Icon({ children, className = "w-5 h-5", title }) {
-  return (
-    <span title={title} className={`${className} inline-flex items-center justify-center leading-none`}>
-      {children}
-    </span>
-  );
-} // end of Icon()
 
-const Search = ({ className = "w-5 h-5 text-gray-400" }) => <Icon className={className}>🔎</Icon>;
-const Plus = ({ className = "w-5 h-5" }) => <Icon className={className}>＋</Icon>;
-const RotateCcw = ({ className = "w-5 h-5" }) => <Icon className={className}>↺</Icon>;
-const Bread = ({ className = "w-5 h-5" }) => <Icon className={className}>🍞</Icon>;
-const Users = ({ className = "w-5 h-5" }) => <Icon className={className}>👥</Icon>;
-const ListChecks = ({ className = "w-5 h-5" }) => <Icon className={className}>☰</Icon>;
-const Home = ({ className = "w-5 h-5" }) => <Icon className={className}>⌂</Icon>;
-const Star = ({ className = "w-5 h-5", filled = false }) => <Icon className={className}>{filled ? "★" : "☆"}</Icon>;
-const Phone = ({ className = "w-5 h-5" }) => <Icon className={className}>☎</Icon>;
-const CheckSquare = ({ className = "w-5 h-5" }) => <Icon className={className}>☑</Icon>;
-const Square = ({ className = "w-5 h-5" }) => <Icon className={className}>☐</Icon>;
-const UserPlus = ({ className = "w-5 h-5" }) => <Icon className={className}>🧑+</Icon>;
-const Trash2 = ({ className = "w-5 h-5" }) => <Icon className={className}>🗑</Icon>;
-const X = ({ className = "w-5 h-5" }) => <Icon className={className}>✕</Icon>;
-const SettingsIcon = ({ className = "w-5 h-5" }) => <Icon className={className}>⚙</Icon>;
 
 /* ==============================================================================
  * Helper functions
@@ -39,48 +37,6 @@ const SettingsIcon = ({ className = "w-5 h-5" }) => <Icon className={className}>
 
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-
-function SectionCard({ title, action, children }) {
-  return (
-    <div className="rounded-3xl bg-white shadow-sm border p-4 space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Badge({ children, tone = "gray" }) {
-  const styles = {
-    gray: "bg-gray-100 text-gray-700",
-    orange: "bg-orange-100 text-orange-800",
-    blue: "bg-blue-100 text-blue-800",
-    green: "bg-green-100 text-green-800",
-    yellow: "bg-yellow-100 text-yellow-800",
-    red: "bg-red-100 text-red-800",
-  };
-  return <span className={`text-[11px] px-2 py-1 rounded-full font-medium ${styles[tone]}`}>{children}</span>;
-}
-
-function AppButton({ children, onClick, variant = "primary", className = "", disabled = false, type = "button" }) {
-  const styles = variant === "primary"
-    ? "bg-black text-white hover:bg-gray-800"
-    : variant === "danger"
-      ? "bg-red-600 text-white hover:bg-red-700"
-      : "bg-white border hover:bg-gray-50";
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`rounded-2xl px-4 py-2.5 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${styles} ${className}`}
-    >
-      {children}
-    </button>
-  );
 }
 
 function PersonRow({ row, mode, itemSingular, itemPlural, onGift, onOpen, onToggleGiftDateEdit }) {
@@ -128,32 +84,6 @@ function PersonRow({ row, mode, itemSingular, itemPlural, onGift, onOpen, onTogg
   );
 }
 
-function Modal({ title, onClose, children }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-3">
-      <div className="bg-white rounded-[28px] w-full max-w-lg max-h-[90vh] overflow-auto shadow-2xl">
-        <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between rounded-t-[28px]">
-          <div className="font-semibold">{title}</div>
-          <button onClick={onClose}><X className="w-5 h-5" /></button>
-        </div>
-        <div className="p-4">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function StarPicker({ value, onChange }) {
-  return (
-    <div className="flex gap-1 items-center">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" onClick={() => onChange(n)} className="text-xl leading-none">
-          <Star className={`w-6 h-6 ${n <= value ? "text-yellow-600" : "text-gray-400"}`} filled={n <= value} />
-        </button>
-      ))}
-      {value ? <button type="button" onClick={() => onChange(0)} className="text-xs text-gray-500 ml-2">Clear</button> : null}
-    </div>
-  );
-}
 
 function ListsScreen({ data, setActiveListId, setLastOpenedListId, setSearch, setTab, addList, onRename }) {
   const [newListName, setNewListName] = useState("");
@@ -295,27 +225,78 @@ function EditGiftDateModal({ gift, onClose, onSave }) {
 
 function EditPersonModal({ person, onClose, onSave }) {
   const [form, setForm] = useState({
-    name: person?.name || "", associatedName: person?.associatedName || "", howMet: person?.howMet || "", note: person?.note || "", phone: person?.phone || "",
+    name: person?.name || "",
+    associatedName: person?.associatedName || "",
+    howMet: person?.howMet || "",
+    note: person?.note || "",
+    phone: person?.phone || "",
   });
-  const [membershipModalPersonId, setMembershipModalPersonId] = useState(null); // controls Add-to-Group modal from person details 1.3.0
+
   const nameRef = useRef(null);
-  useEffect(() => { nameRef.current?.focus(); }, []);
+
+  useEffect(() => {
+    nameRef.current?.focus();
+  }, []);
+
+  // 🔥 THIS IS THE FIX
+  useEffect(() => {
+    setForm({
+      name: person?.name || "",
+      associatedName: person?.associatedName || "",
+      howMet: person?.howMet || "",
+      note: person?.note || "",
+      phone: person?.phone || "",
+    });
+  }, [person]);
+
   return (
     <Modal title="Edit Person" onClose={onClose}>
-      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (!form.name.trim()) return; onSave({ name: form.name.trim(), associatedName: form.associatedName.trim(), howMet: form.howMet.trim(), note: form.note.trim(), phone: form.phone.trim() }); }}>
+      <form
+        className="space-y-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!form.name.trim()) return;
+
+          onSave({
+            name: form.name.trim(),
+            associatedName: form.associatedName.trim(),
+            howMet: form.howMet.trim(),
+            note: form.note.trim(),
+            phone: form.phone.trim(),
+          });
+        }}
+      >
         {[
-          ["name", "Name *"], ["associatedName", "Associated person"], ["howMet", "How you met them"], ["note", "Position / note"], ["phone", "Phone number"],
+          ["name", "Name *"],
+          ["associatedName", "Associated person"],
+          ["howMet", "How you met them"],
+          ["note", "Position / note"],
+          ["phone", "Phone number"],
         ].map(([key, label], index) => (
-          <input key={key} ref={index === 0 ? nameRef : undefined} value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} placeholder={label} className="w-full rounded-2xl border px-3 py-3 outline-none" />
+          <input
+            key={key}
+            ref={index === 0 ? nameRef : undefined}
+            value={form[key]}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, [key]: e.target.value }))
+            }
+            placeholder={label}
+            className="w-full rounded-2xl border px-3 py-3 outline-none"
+          />
         ))}
+
         <div className="flex justify-end gap-2 pt-2">
-          <AppButton onClick={onClose} variant="secondary">Cancel</AppButton>
-          <AppButton type="submit" disabled={!form.name.trim()}>Save Changes</AppButton>
+          <AppButton onClick={onClose} variant="secondary">
+            Cancel
+          </AppButton>
+          <AppButton type="submit" disabled={!form.name.trim()}>
+            Save Changes
+          </AppButton>
         </div>
       </form>
     </Modal>
   );
-}
+} // end of EditPersonModal()
 
 function EditGiftFeedbackModal({ gift, enableFeedback, enableRatings, onClose, onSave }) {
   const [feedback, setFeedback] = useState(gift?.feedback || "");
@@ -885,9 +866,6 @@ function BreadGiftingTrackerWebApp() {
       savedPulse={setupSavedPulse}
       data={data}
       onRestore={restorePerson}
-      SectionCard={SectionCard}
-      Badge={Badge}
-      AppButton={AppButton}
     />
   )}
   </div>
@@ -916,13 +894,16 @@ function BreadGiftingTrackerWebApp() {
     </div>
   </div>}
   
-  {addPersonContext && <AddPersonModal 
-       list={data.lists.find((l) => l.id === addPersonContext.listId) || null} 
-       onClose={() => setAddPersonContext(null)} 
-       onSave={(form) => { addPerson(form, addPersonContext.listId); setAddPersonContext(null); }}
-       Modal={Modal}
-       AppButton={AppButton}
-     />}
+  {addPersonContext && (
+    <AddPersonModal
+      list={data.lists.find((l) => l.id === addPersonContext.listId) || null}
+      onClose={() => setAddPersonContext(null)}
+      onSave={(form) => {
+        addPerson(form, addPersonContext.listId);
+        setAddPersonContext(null);
+      }}
+    />
+  )}
   
   {showAddExisting && activeList && <AddExistingModal list={activeList} people={data.people} memberships={data.memberships} onClose={() => setShowAddExisting(false)} onAdd={(personId) => { addExistingPersonToList(personId, activeList.id); setShowAddExisting(false); }} />}
   {selectedPerson && (
@@ -944,11 +925,6 @@ function BreadGiftingTrackerWebApp() {
       }
       onOpenAddToGroup={() => setMembershipModalPersonId(selectedPerson.id)}
       onDeactivate={deactivatePerson}
-      SectionCard={SectionCard}
-      AppButton={AppButton}
-      Modal={Modal}
-      Phone={Phone}
-      StarPicker={StarPicker}
     />
   )}
    // 1.3.0 ---------------------------------
@@ -966,7 +942,6 @@ function BreadGiftingTrackerWebApp() {
         addExistingPersonToList(membershipModalPersonId, groupId);
         setMembershipModalPersonId(null);
       }}
-      Modal={Modal}
     />
   )}
     
