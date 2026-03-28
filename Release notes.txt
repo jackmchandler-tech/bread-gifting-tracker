@@ -1,3 +1,6 @@
+v1.3.3
+  - Fixed EditPersonModal not refreshing fields when switching people
+  - Restored visibility/editability of Position/Note field
 v1.3.2
   - Moved shared UI pieces into src/components/ui.
   - Extracted AppButton, Badge, Modal, SectionCard, StarPicker, and Icons.
