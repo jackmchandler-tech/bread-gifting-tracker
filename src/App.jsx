@@ -27,8 +27,8 @@ import {
   UserPlus,
   Trash2,
   SettingsIcon,
-} from "./components/ui/Icons";
-
+}                                                          from "./components/ui/Icons";
+import EditPersonModal                                     from "./components/EditPersonModal";
 
 
 /* ==============================================================================
@@ -221,82 +221,7 @@ function EditGiftDateModal({ gift, onClose, onSave }) {
       </div>
     </Modal>
   );
-}
-
-function EditPersonModal({ person, onClose, onSave }) {
-  const [form, setForm] = useState({
-    name: person?.name || "",
-    associatedName: person?.associatedName || "",
-    howMet: person?.howMet || "",
-    note: person?.note || "",
-    phone: person?.phone || "",
-  });
-
-  const nameRef = useRef(null);
-
-  useEffect(() => {
-    nameRef.current?.focus();
-  }, []);
-
-  // 🔥 THIS IS THE FIX
-  useEffect(() => {
-    setForm({
-      name: person?.name || "",
-      associatedName: person?.associatedName || "",
-      howMet: person?.howMet || "",
-      note: person?.note || "",
-      phone: person?.phone || "",
-    });
-  }, [person]);
-
-  return (
-    <Modal title="Edit Person" onClose={onClose}>
-      <form
-        className="space-y-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!form.name.trim()) return;
-
-          onSave({
-            name: form.name.trim(),
-            associatedName: form.associatedName.trim(),
-            howMet: form.howMet.trim(),
-            note: form.note.trim(),
-            phone: form.phone.trim(),
-          });
-        }}
-      >
-        {[
-          ["name", "Name *"],
-          ["associatedName", "Associated person"],
-          ["howMet", "How you met them"],
-          ["note", "Position / note"],
-          ["phone", "Phone number"],
-        ].map(([key, label], index) => (
-          <input
-            key={key}
-            ref={index === 0 ? nameRef : undefined}
-            value={form[key]}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, [key]: e.target.value }))
-            }
-            placeholder={label}
-            className="w-full rounded-2xl border px-3 py-3 outline-none"
-          />
-        ))}
-
-        <div className="flex justify-end gap-2 pt-2">
-          <AppButton onClick={onClose} variant="secondary">
-            Cancel
-          </AppButton>
-          <AppButton type="submit" disabled={!form.name.trim()}>
-            Save Changes
-          </AppButton>
-        </div>
-      </form>
-    </Modal>
-  );
-} // end of EditPersonModal()
+} // end of EditGiftdateModal()
 
 function EditGiftFeedbackModal({ gift, enableFeedback, enableRatings, onClose, onSave }) {
   const [feedback, setFeedback] = useState(gift?.feedback || "");
@@ -951,7 +876,17 @@ function BreadGiftingTrackerWebApp() {
     
   {deleteBreadId && <ConfirmDeleteBreadModal bread={data.breadTypes.find((b) => b.id === deleteBreadId)} onClose={() => setDeleteBreadId(null)} onConfirm={confirmDeleteBreadType} />}
     
-  {editPersonId && <EditPersonModal person={personById(editPersonId)} onClose={() => setEditPersonId(null)} onSave={(updates) => { updatePerson(editPersonId, updates); setEditPersonId(null); }} />}
+  // 1.3.4 (this is the orig) {editPersonId && <EditPersonModal person={personById(editPersonId)} onClose={() => setEditPersonId(null)} onSave={(updates) => { updatePerson(editPersonId, updates); setEditPersonId(null); }} />}
+  {editPersonId && (
+    <EditPersonModal
+      person={data.people.find((p) => p.id === editPersonId)}
+      onClose={() => setEditPersonId(null)}
+      onSave={(updates) => {
+        updatePerson(editPersonId, updates);
+        setEditPersonId(null);
+      }}
+    />
+  )}
     
   {editFeedbackGiftId && <EditGiftFeedbackModal gift={data.gifts.find((g) => g.id === editFeedbackGiftId)} enableFeedback={settings.enableFeedback} enableRatings={settings.enableRatings} onClose={() => setEditFeedbackGiftId(null)} onSave={(feedback, rating) => { updateGiftFeedback(editFeedbackGiftId, feedback, rating); setEditFeedbackGiftId(null); }} />}
   {renameGroupId && <RenameGroupModal group={data.lists.find((list) => list.id === renameGroupId)} onClose={() => setRenameGroupId(null)} onSave={(name) => { renameList(renameGroupId, name); setRenameGroupId(null); }} />}
